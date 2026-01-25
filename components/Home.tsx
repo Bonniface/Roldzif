@@ -83,7 +83,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
         {/* Transport Categories Reel */}
         <div className="pl-5 pr-5 py-2 mb-4 overflow-x-auto no-scrollbar flex items-center gap-6">
            {[
-             { label: 'Drone', icon: 'mode_fan' }, // Propeller look
+             { label: 'Drone', icon: 'helicopter' }, // Propeller look
              { label: 'Truck', icon: 'local_shipping' },
              { label: 'Train', icon: 'train' },
              { label: 'Plane', icon: 'flight' },

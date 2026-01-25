@@ -319,6 +319,27 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
               </div>
             </div>
 
+            {/* Time Logs */}
+            <div className="grid grid-cols-2 gap-4 w-full mb-6">
+              <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                 <div className="flex items-center gap-2 mb-2">
+                    <span className="material-symbols-outlined text-sm text-primary">schedule</span>
+                    <p className="text-[10px] font-bold uppercase text-slate-500">Estimated Arrival</p>
+                 </div>
+                 <p className="text-xl font-black text-slate-900 dark:text-white">10:45 <span className="text-xs font-bold text-slate-400">AM</span></p>
+                 <p className="text-[10px] text-primary font-bold mt-1">On Time</p>
+              </div>
+
+              <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                 <div className="flex items-center gap-2 mb-2">
+                    <span className="material-symbols-outlined text-sm text-slate-400">check_circle</span>
+                    <p className="text-[10px] font-bold uppercase text-slate-500">Actual Arrival</p>
+                 </div>
+                 <p className="text-xl font-black text-slate-400">--:--</p>
+                 <p className="text-[10px] text-slate-400 font-bold mt-1">Pending Delivery</p>
+              </div>
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4 w-full mb-6">
               <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">

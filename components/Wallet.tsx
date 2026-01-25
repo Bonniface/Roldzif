@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppScreen, User } from '../types';
 
 interface WalletProps {
@@ -8,6 +8,16 @@ interface WalletProps {
 
 const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
   const isCourier = user.role === 'COURIER';
+  
+  // Courier Wallet State
+  const [showBalance, setShowBalance] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyBalance = () => {
+    navigator.clipboard.writeText("420.50");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (isCourier) {
     // --- COURIER (BIKER) WALLET UI (LIGHT THEME) ---
@@ -41,10 +51,40 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
           <div className="w-full bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl shadow-slate-900/20 border border-slate-800 relative overflow-hidden mb-8 group">
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-4">
-                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Available Balance</p>
+                 <div className="flex items-center gap-2">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Available Balance</p>
+                    <button 
+                      onClick={() => setShowBalance(!showBalance)} 
+                      className="text-slate-500 hover:text-white transition-colors outline-none focus:text-white"
+                    >
+                      <span className="material-symbols-outlined text-base">
+                        {showBalance ? 'visibility' : 'visibility_off'}
+                      </span>
+                    </button>
+                 </div>
                  <span className="bg-white/10 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border border-white/10">Instant Pay</span>
               </div>
-              <h2 className="text-4xl font-black tracking-tight mb-8">GHS 420<span className="text-2xl opacity-60">.50</span></h2>
+              
+              <div className="flex items-center gap-3 mb-8 h-10">
+                <h2 className="text-4xl font-black tracking-tight">
+                  {showBalance ? (
+                    <>GHS 420<span className="text-2xl opacity-60">.50</span></>
+                  ) : (
+                    <span className="tracking-widest text-3xl">••••••</span>
+                  )}
+                </h2>
+                {showBalance && (
+                   <button 
+                     onClick={handleCopyBalance}
+                     className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors active:scale-95"
+                     title="Copy amount"
+                   >
+                     <span className="material-symbols-outlined text-sm">
+                       {copied ? 'check' : 'content_copy'}
+                     </span>
+                   </button>
+                )}
+              </div>
               
               <button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
                 <span className="material-symbols-outlined text-primary">payments</span>

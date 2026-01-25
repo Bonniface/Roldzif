@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AppScreen } from '../types';
+import { GoogleGenAI } from "@google/genai";
 
 interface OrderPlacementProps {
   onNavigate: (screen: AppScreen) => void;
@@ -7,14 +8,39 @@ interface OrderPlacementProps {
 
 const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
   const [showPayment, setShowPayment] = useState(false);
-  const [category, setCategory] = useState<string>('Blood Sample');
+  const [deliveryMode, setDeliveryMode] = useState<string>('Motorbike');
+  const [scheduleType, setScheduleType] = useState<'NOW' | 'LATER'>('NOW');
+  const [instructions, setInstructions] = useState('');
+  const [isEnhancing, setIsEnhancing] = useState(false);
+
+  const handleEnhanceInstructions = async () => {
+    if (!instructions.trim()) return;
+
+    setIsEnhancing(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Rewrite the following delivery handling instructions to be clear, professional, concise, and easy for a medical courier to understand. Keep the tone urgent but polite. Do not add conversational filler like "Here is the rewritten text". Just output the improved instructions. Input text: "${instructions}"`,
+      });
+
+      if (response.text) {
+        setInstructions(response.text.trim());
+      }
+    } catch (error) {
+      console.error("AI Enhancement failed", error);
+      alert("Could not enhance text. Please check your connection.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-background-light dark:bg-background-dark pb-24">
       {/* Top Navigation Bar */}
       <div className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center p-4 justify-between">
-          <div className="text-primary flex size-10 shrink-0 items-center justify-center cursor-pointer">
+          <div onClick={() => onNavigate(AppScreen.HOME)} className="text-primary flex size-10 shrink-0 items-center justify-center cursor-pointer">
             <span className="material-symbols-outlined">arrow_back_ios</span>
           </div>
           <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">New Pickup Order</h2>
@@ -67,20 +93,88 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Section: Item Category */}
+        {/* Section: Destination Location */}
         <div className="px-4 mt-8">
-          <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Item Category</h3>
+          <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Destination</h3>
+          <div className="flex flex-col gap-4">
+            {/* Destination Address */}
+            <div className="flex flex-col flex-1">
+              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium pb-2">Drop-off GPS Code</p>
+              <div className="flex w-full items-stretch rounded-xl shadow-sm">
+                <div className="flex items-center justify-center bg-white dark:bg-slate-800 border border-r-0 border-slate-300 dark:border-slate-700 pl-4 rounded-l-xl text-stat-red">
+                  <span className="material-symbols-outlined">flag</span>
+                </div>
+                <input 
+                  className="flex w-full min-w-0 flex-1 bg-white dark:bg-slate-800 border-x-0 border-none focus:outline-0 focus:ring-0 h-14 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base font-semibold px-3 uppercase text-slate-900 dark:text-white" 
+                  placeholder="GA-000-0000" 
+                  defaultValue="KB-221-8841" 
+                />
+                <button className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-white px-4 rounded-r-xl font-bold text-sm transition-colors border border-l-0 border-slate-300 dark:border-slate-600">
+                  MAP
+                </button>
+              </div>
+               <p className="text-xs text-slate-500 mt-2 flex items-center gap-1 font-medium">
+                <span className="material-symbols-outlined text-xs">business</span> Korle Bu Teaching Hospital
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+                <label className="flex flex-col flex-1">
+                    <p className="text-slate-600 dark:text-slate-400 text-sm font-medium pb-2">Drop-off Ward / Unit</p>
+                    <input className="w-full rounded-xl bg-white dark:bg-slate-800 border-none h-14 px-4 text-base focus:ring-1 focus:ring-primary outline-none transition-all text-slate-900 dark:text-white" placeholder="e.g. Cardiology" />
+                </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Pickup Time */}
+        <div className="px-4 mt-8">
+            <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Pickup Time</h3>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+                <button 
+                  onClick={() => setScheduleType('NOW')}
+                  className={`flex flex-col items-center justify-center gap-1 border-2 rounded-xl h-20 shadow-sm active:scale-95 transition-all ${scheduleType === 'NOW' ? 'bg-primary/10 border-primary' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}
+                >
+                     <span className={`material-symbols-outlined text-2xl ${scheduleType === 'NOW' ? 'text-primary' : 'text-slate-500'}`}>electric_bolt</span>
+                     <span className={`${scheduleType === 'NOW' ? 'text-primary' : 'text-slate-600 dark:text-slate-300'} font-bold text-sm uppercase`}>Immediate</span>
+                </button>
+                <button 
+                  onClick={() => setScheduleType('LATER')}
+                  className={`flex flex-col items-center justify-center gap-1 border-2 rounded-xl h-20 shadow-sm active:scale-95 transition-all ${scheduleType === 'LATER' ? 'bg-primary/10 border-primary' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}
+                >
+                     <span className={`material-symbols-outlined text-2xl ${scheduleType === 'LATER' ? 'text-primary' : 'text-slate-500'}`}>calendar_clock</span>
+                     <span className={`${scheduleType === 'LATER' ? 'text-primary' : 'text-slate-600 dark:text-slate-300'} font-bold text-sm uppercase`}>Schedule</span>
+                </button>
+            </div>
+            
+            {scheduleType === 'LATER' && (
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="flex flex-col flex-1">
+                      <div className="relative">
+                          <input type="datetime-local" className="w-full rounded-xl bg-white dark:bg-slate-800 border-none h-14 px-4 text-base focus:ring-1 focus:ring-primary outline-none transition-all text-slate-900 dark:text-white" defaultValue="2025-03-15T10:30" />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                              <span className="material-symbols-outlined">event</span>
+                          </div>
+                      </div>
+                  </label>
+              </div>
+            )}
+        </div>
+
+        {/* Section: Delivery Mode */}
+        <div className="px-4 mt-8">
+          <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Delivery Mode</h3>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { name: 'Blood Sample', icon: 'water_drop', color: 'text-red-500', sub: 'Temp Controlled' },
-              { name: 'Vaccine', icon: 'ac_unit', color: 'text-cyan-500', sub: 'Cold Chain' },
-              { name: 'Organ', icon: 'favorite', color: 'text-primary', sub: 'Priority 1' },
-              { name: 'Pharma', icon: 'pill', color: 'text-emerald-500', sub: 'General Meds' },
+              { name: 'Drone', icon: 'helicopter', color: 'text-sky-500', sub: 'Emergency / Light' },
+              { name: 'Motorbike', icon: 'two_wheeler', color: 'text-primary', sub: 'Standard / Fast' },
+              { name: 'Car', icon: 'directions_car', color: 'text-indigo-500', sub: 'Secure / Medium' },
+              { name: 'Truck', icon: 'local_shipping', color: 'text-emerald-500', sub: 'Bulk / Heavy' },
             ].map((item) => (
               <div 
                 key={item.name}
-                onClick={() => setCategory(item.name)}
-                className={`flex flex-col gap-3 rounded-xl border p-4 items-start cursor-pointer transition-all ${category === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary/20' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-primary'}`}
+                onClick={() => setDeliveryMode(item.name)}
+                className={`flex flex-col gap-3 rounded-xl border p-4 items-start cursor-pointer transition-all ${deliveryMode === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary/20' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-primary'}`}
               >
                 <div className={`${item.color} bg-white dark:bg-slate-900 p-2 rounded-lg shadow-sm`}>
                   <span className="material-symbols-outlined material-symbols-filled">{item.icon}</span>
@@ -94,10 +188,41 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Order Instructions */}
+        {/* Order Instructions with Gemini AI */}
         <div className="px-4 mt-8">
-          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium pb-2">Handling Instructions</p>
-          <textarea className="w-full rounded-xl bg-white dark:bg-slate-800 border-none p-4 text-base min-h-[100px] focus:ring-1 focus:ring-primary outline-none text-slate-900 dark:text-white" placeholder="Add special instructions for the courier..."></textarea>
+          <div className="flex justify-between items-center pb-2">
+            <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Handling Instructions</p>
+            {instructions.length > 5 && (
+              <button 
+                onClick={handleEnhanceInstructions}
+                disabled={isEnhancing}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isEnhancing ? (
+                  <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                )}
+                {isEnhancing ? 'Enhancing...' : 'AI Enhance'}
+              </button>
+            )}
+          </div>
+          <div className="relative">
+            <textarea 
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              className="w-full rounded-xl bg-white dark:bg-slate-800 border-none p-4 text-base min-h-[120px] focus:ring-1 focus:ring-primary outline-none text-slate-900 dark:text-white transition-all resize-y" 
+              placeholder="Add special instructions for the courier (e.g. 'Fragile, do not shake', 'Keep upright')..."
+            ></textarea>
+            {isEnhancing && (
+               <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] rounded-xl flex items-center justify-center">
+                  <div className="flex flex-col items-center">
+                    <span className="material-symbols-outlined text-primary animate-bounce">auto_awesome</span>
+                    <span className="text-xs font-bold text-primary bg-white dark:bg-slate-900 px-2 py-1 rounded-full shadow-sm mt-2">Refining with Gemini...</span>
+                  </div>
+               </div>
+            )}
+          </div>
         </div>
       </main>
 
