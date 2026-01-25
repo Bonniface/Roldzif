@@ -80,13 +80,23 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
           </div>
         </div>
 
-        {/* Partners Reel */}
-        <div className="pl-5 pr-5 py-2 mb-4 overflow-x-auto no-scrollbar flex items-center gap-8">
-           <PartnerItem label="ABSA" color="text-red-600" />
-           <PartnerItem label="Shoprite" color="text-red-500" />
-           <PartnerItem label="Shoprite" hasDot />
-           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Coat_of_arms_of_Ghana.svg/1200px-Coat_of_arms_of_Ghana.svg.png" className="h-8 w-auto grayscale opacity-50" alt="Gov" />
-           <PartnerItem label="Road Safety" />
+        {/* Transport Categories Reel */}
+        <div className="pl-5 pr-5 py-2 mb-4 overflow-x-auto no-scrollbar flex items-center gap-6">
+           {[
+             { label: 'Drone', icon: 'mode_fan' }, // Propeller look
+             { label: 'Truck', icon: 'local_shipping' },
+             { label: 'Train', icon: 'train' },
+             { label: 'Plane', icon: 'flight' },
+             { label: 'Car', icon: 'directions_car' },
+             { label: 'Ship', icon: 'directions_boat' },
+           ].map((item, idx) => (
+             <div key={idx} className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer">
+               <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shadow-sm group-hover:bg-white group-hover:border-primary/30 group-hover:text-primary group-hover:shadow-md transition-all active:scale-95">
+                 <span className="material-symbols-outlined text-[28px]">{item.icon}</span>
+               </div>
+               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-slate-900 transition-colors">{item.label}</span>
+             </div>
+           ))}
         </div>
 
         {/* Logistics Options Grid */}
@@ -198,17 +208,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
     </div>
   );
 };
-
-const PartnerItem: React.FC<{ label: string; logo?: string; hasDot?: boolean; color?: string }> = ({ label, logo, hasDot, color }) => (
-  <div className="flex items-center gap-2 shrink-0">
-    {hasDot && <span className="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>}
-    {logo ? (
-      <img src={logo} alt={label} className="h-6 w-auto grayscale" />
-    ) : (
-      <span className={`text-[12px] font-black uppercase tracking-wide ${color || 'text-slate-800'}`}>{label}</span>
-    )}
-  </div>
-);
 
 interface ServiceCardProps {
   bg: string;

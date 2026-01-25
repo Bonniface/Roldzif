@@ -195,9 +195,10 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
                 <div className="absolute inset-0 bg-primary/40 rounded-full animate-ping"></div>
                 <div className="absolute -inset-4 bg-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }}></div>
                 
+                {/* Courier Icon with Custom Pulse Shadow */}
                 <div 
                   className="w-11 h-11 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl border-[3px] border-white relative z-10 ring-1 ring-black/10 transition-transform duration-300"
-                  style={{ transform: `rotate(${angleDeg}deg)` }}
+                  style={{ transform: `rotate(${angleDeg}deg)`, animation: 'pulse-shadow 2s infinite' }}
                 >
                   <span className="material-symbols-outlined text-lg">two_wheeler</span>
                 </div>
@@ -270,6 +271,25 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
 
             {/* Circular Integrity Gauge */}
             <div className="relative w-48 h-48 mb-8">
+              {/* LABELS for zones */}
+              <div className="absolute inset-0 z-10 pointer-events-none">
+                  {/* 2°C Label - Start of Safe Range */}
+                  <div className="absolute top-[14%] right-[22%]">
+                     <span className="text-[9px] font-bold text-slate-500 bg-white/60 dark:bg-black/40 backdrop-blur-[2px] px-1.5 py-0.5 rounded-md shadow-sm border border-slate-200/50">2°C</span>
+                  </div>
+                  
+                  {/* 8°C Label - End of Safe Range */}
+                  <div className="absolute bottom-[28%] right-[8%]">
+                     <span className="text-[9px] font-bold text-slate-500 bg-white/60 dark:bg-black/40 backdrop-blur-[2px] px-1.5 py-0.5 rounded-md shadow-sm border border-slate-200/50">8°C</span>
+                  </div>
+
+                  {/* Optimal Indicator */}
+                  <div className="absolute top-[38%] right-[-12%] flex items-center">
+                     <div className="w-6 h-[1px] bg-success"></div>
+                     <span className="text-[9px] font-bold text-success uppercase ml-1 tracking-wider bg-success/5 px-1 rounded">Optimal</span>
+                  </div>
+              </div>
+
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                 {/* Background Circle */}
                 <circle className="text-slate-200 dark:text-slate-800" cx="50" cy="50" fill="transparent" r="45" stroke="currentColor" strokeWidth="6"></circle>
@@ -370,6 +390,15 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
           View Logistics Log
         </button>
       </footer>
+
+      {/* Styles for pulsing shadow */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes pulse-shadow {
+          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+          70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+      `}} />
     </div>
   );
 };
