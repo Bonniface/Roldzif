@@ -1,0 +1,8 @@
+{
+  "name": "Roldzif Medical Logistics",
+  "description": "A high-fidelity medical logistics application for Ghana, featuring real-time tracking, cold-chain integrity monitoring, and secure chain of custody.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
