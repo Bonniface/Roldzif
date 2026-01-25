@@ -13,6 +13,11 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
   const [instructions, setInstructions] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
 
+  // Custom Calendar State
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<number>(new Date().getDate());
+  const [selectedTime, setSelectedTime] = useState<string>('10:00');
+
   const handleEnhanceInstructions = async () => {
     if (!instructions.trim()) return;
 
@@ -33,6 +38,23 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
     } finally {
       setIsEnhancing(false);
     }
+  };
+
+  // Calendar Helpers
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  const timeSlots = [
+    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", 
+    "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
+  ];
+
+  const changeMonth = (offset: number) => {
+    const newDate = new Date(currentDate.setMonth(currentDate.getMonth() + offset));
+    setCurrentDate(new Date(newDate));
   };
 
   return (
@@ -148,15 +170,72 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
             </div>
             
             {scheduleType === 'LATER' && (
-              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="flex flex-col flex-1">
-                      <div className="relative">
-                          <input type="datetime-local" className="w-full rounded-xl bg-white dark:bg-slate-800 border-none h-14 px-4 text-base focus:ring-1 focus:ring-primary outline-none transition-all text-slate-900 dark:text-white" defaultValue="2025-03-15T10:30" />
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                              <span className="material-symbols-outlined">event</span>
-                          </div>
-                      </div>
-                  </label>
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+                  {/* Calendar Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500">
+                      <span className="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <h4 className="font-bold text-slate-900 dark:text-white">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h4>
+                    <button onClick={() => changeMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500">
+                      <span className="material-symbols-outlined">chevron_right</span>
+                    </button>
+                  </div>
+
+                  {/* Days Header */}
+                  <div className="grid grid-cols-7 mb-2">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                      <div key={i} className="text-center text-xs font-bold text-slate-400">{day}</div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-1 mb-6">
+                    {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                      <div key={`empty-${i}`} className="aspect-square"></div>
+                    ))}
+                    {Array.from({ length: daysInMonth }).map((_, i) => {
+                      const day = i + 1;
+                      const isSelected = selectedDate === day;
+                      const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth();
+                      
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => setSelectedDate(day)}
+                          className={`aspect-square rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                            isSelected 
+                              ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                              : isToday 
+                                ? 'text-primary bg-primary/10 font-bold'
+                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Time Slots */}
+                  <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Available Slots</p>
+                    <div className="flex flex-wrap gap-2">
+                      {timeSlots.map((time) => (
+                        <button
+                          key={time}
+                          onClick={() => setSelectedTime(time)}
+                          className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
+                            selectedTime === time
+                              ? 'bg-primary text-white border-primary shadow-sm'
+                              : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary/50'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
               </div>
             )}
         </div>

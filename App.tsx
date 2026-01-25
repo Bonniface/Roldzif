@@ -9,10 +9,12 @@ import KYCVerification from './components/KYCVerification';
 import OrderTracking from './components/OrderTracking';
 import Profile from './components/Profile';
 import Wallet from './components/Wallet';
+import Onboarding from './components/Onboarding';
+import Auth from './components/Auth';
 
 // --- Courier Layout (Biker) ---
 // Keeps existing state-based navigation for now
-const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void }> = ({ user, onSwitchUser }) => {
+const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.HOME);
   const [showNotification, setShowNotification] = useState(false);
 
@@ -52,7 +54,7 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void }> = ({ use
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col">
+    <div className="relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col animate-in fade-in duration-500">
       <div className="flex-1 overflow-auto no-scrollbar relative">
         {renderScreen()}
         
@@ -140,7 +142,7 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void }> = ({ use
 };
 
 // --- Hospital App Content (Inner Component to use Router Hooks) ---
-const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void }> = ({ user, onSwitchUser }) => {
+const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -171,7 +173,7 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void }> = (
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col">
+    <div className="relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col animate-in fade-in duration-500">
       <div className="flex-1 overflow-auto no-scrollbar">
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
@@ -218,43 +220,68 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void }> = (
 };
 
 // --- Hospital Layout Wrapper ---
-const HospitalLayout: React.FC<{ user: User; onSwitchUser: () => void }> = ({ user, onSwitchUser }) => {
+const HospitalLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   return (
     <HashRouter>
-      <HospitalAppContent user={user} onSwitchUser={onSwitchUser} />
+      <HospitalAppContent user={user} onSwitchUser={onSwitchUser} onLogout={onLogout} />
     </HashRouter>
   );
 };
 
 // --- Main App Entry ---
 const App: React.FC = () => {
-  // Mock User State
-  const [user, setUser] = useState<User>({
-    name: 'Marcus Thompson',
-    role: 'COURIER',
-    isVerified: true
-  });
+  // App Flow State
+  const [hasOnboarded, setHasOnboarded] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   const handleSwitchUser = () => {
+    if (!user) return;
     if (user.role === 'COURIER') {
       setUser({
+        ...user,
         name: 'Dr. Sarah Chen',
-        role: 'HOSPITAL',
+        role: 'DOCTOR', // Updated role type
         isVerified: true
       });
     } else {
       setUser({
+        ...user,
         name: 'Marcus Thompson',
         role: 'COURIER',
-        isVerified: true
+        isVerified: true,
+        vehicle: 'MOTORBIKE'
       });
     }
   };
 
+  const handleLogout = () => {
+    setUser(null);
+    setHasOnboarded(true); // Keep them after onboarding, but logged out
+  };
+
+  // 1. Onboarding Check
+  if (!hasOnboarded) {
+    return (
+      <div className="relative w-full min-h-screen bg-white overflow-hidden mx-auto max-w-md shadow-2xl">
+        <Onboarding onComplete={() => setHasOnboarded(true)} />
+      </div>
+    );
+  }
+
+  // 2. Authentication Check
+  if (!user) {
+    return (
+      <div className="relative w-full min-h-screen bg-white overflow-hidden mx-auto max-w-md shadow-2xl">
+        <Auth onLogin={(u) => setUser(u)} />
+      </div>
+    );
+  }
+
+  // 3. Main App Layout (Role Based)
   return user.role === 'COURIER' ? (
-    <CourierLayout user={user} onSwitchUser={handleSwitchUser} />
+    <CourierLayout user={user} onSwitchUser={handleSwitchUser} onLogout={handleLogout} />
   ) : (
-    <HospitalLayout user={user} onSwitchUser={handleSwitchUser} />
+    <HospitalLayout user={user} onSwitchUser={handleSwitchUser} onLogout={handleLogout} />
   );
 };
 
