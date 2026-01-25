@@ -88,7 +88,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
              { label: 'Train', icon: 'train' },
              { label: 'Plane', icon: 'flight' },
              { label: 'Car', icon: 'directions_car' },
-             { label: 'Ship', icon: 'directions_boat' },
+             { label: 'Ambulance', icon: 'ambulance' },
            ].map((item, idx) => (
              <div key={idx} className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer">
                <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shadow-sm group-hover:bg-white group-hover:border-primary/30 group-hover:text-primary group-hover:shadow-md transition-all active:scale-95">
@@ -157,13 +157,13 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                   <img src="https://cdn-icons-png.flaticon.com/512/3209/3209072.png" className="absolute bottom-4 right-[-10px] w-24 drop-shadow-xl" alt="Lab" />
                </div>
 
-               {/* Pharma Direct (Yellow) */}
+               {/* Ambulance (Yellow) - Replaced Pharma/Ride */}
                <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-yellow p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
                   <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
-                    Pharma / Ride <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    Ambulance <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </h3>
-                  <p className="text-[10px] text-slate-500 mt-2 w-2/3 leading-tight">Choose your delivery speed</p>
-                  <img src="https://cdn-icons-png.flaticon.com/512/3063/3063822.png" className="absolute bottom-2 right-0 w-28 drop-shadow-xl" alt="Car" />
+                  <p className="text-[10px] text-slate-500 mt-2 w-2/3 leading-tight">Emergency & Corps Transfer</p>
+                  <img src="https://cdn-icons-png.flaticon.com/512/2893/2893149.png" className="absolute bottom-2 right-0 w-28 drop-shadow-xl" alt="Ambulance" />
                </div>
             </div>
 
@@ -182,7 +182,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                <ServiceCard 
                  bg="bg-brand-pink"
                  title="Organ Tx"
-                 desc="Find & pay for events"
+                 desc="Rapid organ transport"
                  icon="favorite"
                  image="https://cdn-icons-png.flaticon.com/512/3004/3004458.png" // People/Event
                  onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
