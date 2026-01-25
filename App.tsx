@@ -44,19 +44,15 @@ const EmergencyHeader: React.FC = () => {
 };
 
 // --- Courier Layout (Biker) ---
-// Keeps existing state-based navigation for now
 const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.HOME);
   const [showNotification, setShowNotification] = useState(false);
-  // Demo: Simulating an active emergency mission for the courier
   const [isEmergency, setIsEmergency] = useState(true);
 
   // Simulate Push Notification Logic
   useEffect(() => {
     let timer: number;
-    // Only trigger notification if on Job Feed to simulate "real-time" updates while browsing
-    if (currentScreen === AppScreen.JOB_FEED) {
-      // Wait 3.5 seconds before showing a new job alert
+    if (currentScreen === AppScreen.MISSIONS) {
       timer = window.setTimeout(() => {
         setShowNotification(true);
       }, 3500);
@@ -71,9 +67,9 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
     switch (currentScreen) {
       case AppScreen.HOME:
         return <Home onNavigate={setCurrentScreen} user={user} />;
-      case AppScreen.JOB_FEED:
+      case AppScreen.MISSIONS:
         return <JobFeed onNavigate={setCurrentScreen} />;
-      case AppScreen.DELIVERY_PROOF:
+      case AppScreen.CUSTODY:
         return <DeliveryProof onNavigate={setCurrentScreen} />;
       case AppScreen.WALLET:
         return <Wallet onNavigate={setCurrentScreen} user={user} />;
@@ -125,7 +121,6 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
                 <button 
                   onClick={() => {
                     setShowNotification(false);
-                    // In a real app, this would scroll to the new item or open details
                   }}
                   className="bg-white text-slate-900 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-slate-200 transition-colors"
                 >
@@ -137,7 +132,7 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
         )}
       </div>
 
-      {/* Courier Bottom Navigation: Home, Feed, POD, Wallet, Profile */}
+      {/* Courier Bottom Navigation: Home, Missions, Custody, Wallet, Profile */}
       <div className="sticky bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
         <div className="flex justify-between items-center px-1 py-2">
           <NavButton 
@@ -147,16 +142,16 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
             label="Home"
           />
           <NavButton 
-            active={currentScreen === AppScreen.JOB_FEED} 
-            onClick={() => setCurrentScreen(AppScreen.JOB_FEED)} 
+            active={currentScreen === AppScreen.MISSIONS} 
+            onClick={() => setCurrentScreen(AppScreen.MISSIONS)} 
             icon="list_alt" 
-            label="Feed" 
+            label="Missions" 
           />
           <NavButton 
-            active={currentScreen === AppScreen.DELIVERY_PROOF} 
-            onClick={() => setCurrentScreen(AppScreen.DELIVERY_PROOF)} 
-            icon="fact_check" 
-            label="POD" 
+            active={currentScreen === AppScreen.CUSTODY} 
+            onClick={() => setCurrentScreen(AppScreen.CUSTODY)} 
+            icon="verified_user" 
+            label="Custody" 
           />
           <NavButton 
             active={currentScreen === AppScreen.WALLET} 
@@ -176,11 +171,10 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
   );
 };
 
-// --- Hospital App Content (Inner Component to use Router Hooks) ---
+// --- Hospital App Content ---
 const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  // Demo: Simulating active tracking for hospital
   const [isEmergency, setIsEmergency] = useState(true);
 
   // Adapter function to map AppScreen enum to Routes
@@ -225,7 +219,7 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
         </Routes>
       </div>
 
-      {/* Hospital Bottom Navigation using Router Navigation */}
+      {/* Hospital Bottom Navigation */}
       <div className="sticky bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
         <div className="flex justify-around items-center px-4 py-2">
           <NavButton 
@@ -269,7 +263,6 @@ const HospitalLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout:
 
 // --- Main App Entry ---
 const App: React.FC = () => {
-  // App Flow State
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
@@ -279,8 +272,9 @@ const App: React.FC = () => {
       setUser({
         ...user,
         name: 'Dr. Sarah Chen',
-        role: 'DOCTOR', // Updated role type
-        isVerified: true
+        role: 'DOCTOR',
+        isVerified: true,
+        badges: ['TRUSTED_PARTNER']
       });
     } else {
       setUser({
@@ -288,17 +282,17 @@ const App: React.FC = () => {
         name: 'Marcus Thompson',
         role: 'COURIER',
         isVerified: true,
-        vehicle: 'MOTORBIKE'
+        vehicle: 'MOTORBIKE',
+        badges: ['KYC', 'FDA_CERTIFIED']
       });
     }
   };
 
   const handleLogout = () => {
     setUser(null);
-    setHasOnboarded(true); // Keep them after onboarding, but logged out
+    setHasOnboarded(true);
   };
 
-  // 1. Onboarding Check
   if (!hasOnboarded) {
     return (
       <div className="relative w-full min-h-screen bg-white overflow-hidden mx-auto max-w-md shadow-2xl">
@@ -307,7 +301,6 @@ const App: React.FC = () => {
     );
   }
 
-  // 2. Authentication Check
   if (!user) {
     return (
       <div className="relative w-full min-h-screen bg-white overflow-hidden mx-auto max-w-md shadow-2xl">
@@ -316,7 +309,6 @@ const App: React.FC = () => {
     );
   }
 
-  // 3. Main App Layout (Role Based)
   return user.role === 'COURIER' ? (
     <CourierLayout user={user} onSwitchUser={handleSwitchUser} onLogout={handleLogout} />
   ) : (

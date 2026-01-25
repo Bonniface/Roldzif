@@ -12,6 +12,7 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
   // Courier Wallet State
   const [showBalance, setShowBalance] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [autoSweep, setAutoSweep] = useState(true);
 
   const handleCopyBalance = () => {
     navigator.clipboard.writeText("420.50");
@@ -47,8 +48,8 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
             <p className="text-[10px] text-slate-500 mt-2 text-right font-medium">GHS 120.00 / GHS 150.00</p>
           </div>
 
-          {/* Earnings Card - Dark Premium Contrast */}
-          <div className="w-full bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl shadow-slate-900/20 border border-slate-800 relative overflow-hidden mb-8 group">
+          {/* Earnings Card */}
+          <div className="w-full bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl shadow-slate-900/20 border border-slate-800 relative overflow-hidden mb-6 group">
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-4">
                  <div className="flex items-center gap-2">
@@ -73,17 +74,6 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
                     <span className="tracking-widest text-3xl">••••••</span>
                   )}
                 </h2>
-                {showBalance && (
-                   <button 
-                     onClick={handleCopyBalance}
-                     className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors active:scale-95"
-                     title="Copy amount"
-                   >
-                     <span className="material-symbols-outlined text-sm">
-                       {copied ? 'check' : 'content_copy'}
-                     </span>
-                   </button>
-                )}
               </div>
               
               <button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
@@ -92,11 +82,24 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
               </button>
             </div>
             
-            {/* Visual Flair */}
-            <div className="absolute -right-6 -bottom-10 opacity-5 rotate-12 group-hover:opacity-10 transition-opacity">
-               <span className="material-symbols-outlined text-[150px]">two_wheeler</span>
-            </div>
              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+          </div>
+
+          {/* Auto-Sweep Feature (Retention Tool) */}
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-4 border border-yellow-100 mb-8 flex items-center justify-between shadow-sm">
+             <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-slate-900 shadow-sm">
+                  <span className="font-black text-xs">MoMo</span>
+               </div>
+               <div>
+                  <h4 className="font-bold text-sm text-slate-900">Auto-Sweep</h4>
+                  <p className="text-[10px] text-slate-500 font-medium w-40 leading-tight">Automatically send earnings to your MoMo wallet at 5 PM daily.</p>
+               </div>
+             </div>
+             <label className="relative inline-flex items-center cursor-pointer">
+               <input type="checkbox" checked={autoSweep} onChange={() => setAutoSweep(!autoSweep)} className="sr-only peer" />
+               <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-400"></div>
+             </label>
           </div>
 
           {/* Stats Row */}
@@ -115,36 +118,6 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
               <p className="text-2xl font-black text-slate-900">6.5<span className="text-sm font-medium text-slate-400 ml-0.5">h</span></p>
               <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Online Hours</span>
             </div>
-          </div>
-
-          {/* Transaction History */}
-          <h3 className="text-slate-900 text-lg font-bold mb-4 px-1">Recent Activity</h3>
-          <div className="space-y-3">
-             <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <span className="material-symbols-outlined">arrow_downward</span>
-                   </div>
-                   <div>
-                      <p className="text-sm font-bold text-slate-900">Delivery Payout</p>
-                      <p className="text-xs text-slate-500 font-medium">10:42 AM • Korle Bu Teaching</p>
-                   </div>
-                </div>
-                <p className="text-sm font-bold text-emerald-600">+ GHS 45.00</p>
-             </div>
-             
-             <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <span className="material-symbols-outlined">volunteer_activism</span>
-                   </div>
-                   <div>
-                      <p className="text-sm font-bold text-slate-900">Tip Received</p>
-                      <p className="text-xs text-slate-500 font-medium">Yesterday • Dr. Ansah</p>
-                   </div>
-                </div>
-                <p className="text-sm font-bold text-emerald-600">+ GHS 15.00</p>
-             </div>
           </div>
         </main>
       </div>
@@ -188,19 +161,26 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
            </div>
         </div>
 
-        {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-           <button className="flex flex-col items-center justify-center gap-2 bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-primary transition-colors group">
-              <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                <span className="material-symbols-outlined">add_card</span>
+        {/* Action Grid (Quick Load MoMo) */}
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Quick Top-Up</p>
+        <div className="grid grid-cols-3 gap-3 mb-8">
+           <button className="flex flex-col items-center justify-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:border-yellow-400 transition-colors group active:scale-95">
+              <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center font-black text-slate-900 text-xs shadow-sm">
+                MTN
               </div>
-              <span className="text-sm font-bold text-slate-700">Load Funds</span>
+              <span className="text-xs font-bold text-slate-600">MoMo</span>
            </button>
-           <button className="flex flex-col items-center justify-center gap-2 bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-primary transition-colors group">
-              <div className="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                <span className="material-symbols-outlined">description</span>
+           <button className="flex flex-col items-center justify-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:border-red-500 transition-colors group active:scale-95">
+              <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-black text-white text-xs shadow-sm">
+                T
               </div>
-              <span className="text-sm font-bold text-slate-700">Invoices</span>
+              <span className="text-xs font-bold text-slate-600">Telecel</span>
+           </button>
+           <button className="flex flex-col items-center justify-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:border-blue-400 transition-colors group active:scale-95">
+              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-black text-white text-xs shadow-sm">
+                AT
+              </div>
+              <span className="text-xs font-bold text-slate-600">AT Money</span>
            </button>
         </div>
 
@@ -222,32 +202,6 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
                  </div>
               </div>
               <p className="text-sm font-bold text-slate-900">- GHS 45.00</p>
-           </div>
-
-           <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                    <span className="material-symbols-outlined">local_shipping</span>
-                 </div>
-                 <div>
-                    <p className="text-sm font-bold text-slate-900">Order #MD-8821</p>
-                    <p className="text-xs text-slate-500 font-medium">Yesterday • Oncology</p>
-                 </div>
-              </div>
-              <p className="text-sm font-bold text-slate-900">- GHS 12.50</p>
-           </div>
-           
-           <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
-                    <span className="material-symbols-outlined">account_balance</span>
-                 </div>
-                 <div>
-                    <p className="text-sm font-bold text-slate-900">Bank Top-Up</p>
-                    <p className="text-xs text-slate-500 font-medium">Mar 12 • Accounts Payable</p>
-                 </div>
-              </div>
-              <p className="text-sm font-bold text-green-600">+ GHS 5,000.00</p>
            </div>
         </div>
       </main>

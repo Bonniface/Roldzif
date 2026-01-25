@@ -118,7 +118,7 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate }) => {
             </div>
             
             <button 
-              onClick={() => onNavigate(AppScreen.DELIVERY_PROOF)}
+              onClick={() => onNavigate(AppScreen.CUSTODY)}
               className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">check_circle</span>

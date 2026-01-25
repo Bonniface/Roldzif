@@ -10,7 +10,6 @@ interface ProfileProps {
 const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => {
   const isCourier = user.role === 'COURIER';
   
-  // Use stable placeholder avatars for demo purposes
   const avatarUrl = isCourier 
     ? "https://i.pravatar.cc/300?img=11" // Marcus
     : "https://i.pravatar.cc/300?img=5"; // Sarah
@@ -38,20 +37,41 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => 
                 className="w-full h-full rounded-full object-cover border-4 border-background-light dark:border-background-dark"
               />
             </div>
+            {/* Primary Status Badge */}
             <div className="absolute bottom-1 right-1 bg-success text-white p-1.5 rounded-full border-4 border-background-light dark:border-background-dark flex items-center justify-center shadow-sm">
               <span className="material-symbols-outlined text-sm font-bold">check</span>
             </div>
           </div>
           
           <h2 className="text-2xl font-bold mt-4 tracking-tight">{user.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
-             <div className={`px-3 py-1 rounded-full flex items-center gap-1.5 border ${isCourier ? 'bg-primary/10 border-primary/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
-                <span className={`material-symbols-outlined text-sm ${isCourier ? 'text-primary' : 'text-emerald-500'}`}>verified</span>
-                <span className={`text-xs font-bold uppercase tracking-wide ${isCourier ? 'text-primary' : 'text-emerald-500'}`}>
-                  {isCourier ? 'Certified Courier' : 'Hospital Admin'}
-                </span>
-             </div>
-             <span className="text-slate-400 text-xs font-semibold">• ID: #{isCourier ? '8821' : 'H-402'}</span>
+          
+          {/* Tiered Badges Display */}
+          <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
+             {/* Blue: KYC Verified */}
+             {user.isVerified && (
+               <div className="px-2 py-0.5 rounded-full flex items-center gap-1 border bg-blue-50 border-blue-200 text-blue-600">
+                  <span className="material-symbols-outlined text-[14px] material-symbols-filled">verified</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide">Verified</span>
+               </div>
+             )}
+             
+             {/* Green: FDA / Biohazard Certified (Courier) */}
+             {user.badges?.includes('FDA_CERTIFIED') && (
+               <div className="px-2 py-0.5 rounded-full flex items-center gap-1 border bg-emerald-50 border-emerald-200 text-emerald-600">
+                  <span className="material-symbols-outlined text-[14px] material-symbols-filled">medical_services</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide">FDA Certified</span>
+               </div>
+             )}
+
+             {/* Gold: Trusted Partner (Hospital) */}
+             {user.badges?.includes('TRUSTED_PARTNER') && (
+               <div className="px-2 py-0.5 rounded-full flex items-center gap-1 border bg-amber-50 border-amber-200 text-amber-600">
+                  <span className="material-symbols-outlined text-[14px] material-symbols-filled">stars</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide">Gold Partner</span>
+               </div>
+             )}
+
+             <span className="text-slate-400 text-xs font-semibold ml-1">ID: #{isCourier ? '8821' : 'H-402'}</span>
           </div>
         </div>
 
@@ -129,7 +149,7 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => 
            </button>
            
            <div className="text-center pt-6 pb-2">
-             <p className="text-[10px] text-slate-400 font-medium">Roldzif v2.4.0 (Build 2026.03.15)</p>
+             <p className="text-[10px] text-slate-400 font-medium">Roldzif v2.4.0</p>
            </div>
         </div>
       </main>

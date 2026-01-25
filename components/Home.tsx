@@ -53,12 +53,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                  <p className="text-2xl font-black tracking-tighter text-slate-900 leading-none">
                    {isCourier ? '420.50' : '0.00'}
                  </p>
-                 <p className="text-[9px] font-bold text-slate-900/50 mt-1">Card Balance</p>
-               </div>
-               
-               {/* Arch Graphic Outline */}
-               <div className="absolute bottom-0 right-0 opacity-20 pointer-events-none text-slate-900">
-                 <span className="material-symbols-outlined text-[120px] -mr-10 -mb-6 leading-none">temple_hindu</span>
                </div>
             </div>
 
@@ -71,30 +65,45 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                 <p className="text-[10px] text-slate-400 font-medium w-24 leading-tight text-right">Virtual Card Details</p>
               </div>
               
-              <div className="z-10 flex flex-col items-end">
-                <div className="w-full h-12 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Adinkra_Symbols.svg/1200px-Adinkra_Symbols.svg.png')] bg-contain bg-no-repeat bg-right opacity-10 mb-2"></div>
-                <p className="text-slate-900 font-bold tracking-[0.15em] text-lg">1764 6367</p>
-                <p className="text-[9px] text-slate-400 font-bold mt-1">Card Number</p>
+              {/* Quick Top-up Integration */}
+              <div className="flex flex-col items-end gap-3 z-10">
+                <button 
+                  onClick={() => onNavigate(AppScreen.WALLET)}
+                  className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 pl-1.5 pr-2.5 py-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-[8px] font-black text-slate-900">M</div>
+                  <span className="text-[10px] font-bold text-slate-700">Quick Load</span>
+                </button>
+
+                <div className="flex flex-col items-end">
+                    <p className="text-slate-900 font-bold tracking-[0.15em] text-lg">1764 6367</p>
+                    <p className="text-[9px] text-slate-400 font-bold mt-1">Card Number</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Transport Categories Reel */}
+        {/* Transport Categories Reel (Dynamic States) */}
         <div className="pl-5 pr-5 py-2 mb-4 overflow-x-auto no-scrollbar flex items-center gap-6">
            {[
-             { label: 'Drone', icon: 'helicopter' }, // Propeller look
+             { label: 'Drone', icon: 'helicopter', disabled: true, note: 'Windy' }, 
+             { label: 'Trotro X', icon: 'airport_shuttle', special: true }, // Trotro Express
              { label: 'Truck', icon: 'local_shipping' },
-             { label: 'Train', icon: 'train' },
-             { label: 'Plane', icon: 'flight' },
-             { label: 'Car', icon: 'directions_car' },
+             { label: 'Bike', icon: 'two_wheeler' },
              { label: 'Ambulance', icon: 'ambulance' },
+             { label: 'Plane', icon: 'flight' },
            ].map((item, idx) => (
-             <div key={idx} className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer">
-               <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shadow-sm group-hover:bg-white group-hover:border-primary/30 group-hover:text-primary group-hover:shadow-md transition-all active:scale-95">
+             <div key={idx} className={`flex flex-col items-center gap-1.5 shrink-0 group ${item.disabled ? 'opacity-50 grayscale' : 'cursor-pointer'}`}>
+               <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shadow-sm transition-all active:scale-95 relative ${item.special ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-slate-50 border-slate-100 text-slate-500 group-hover:bg-white group-hover:border-primary/30 group-hover:text-primary'}`}>
                  <span className="material-symbols-outlined text-[28px]">{item.icon}</span>
+                 {item.disabled && (
+                   <div className="absolute -bottom-2 bg-slate-800 text-white text-[8px] px-1.5 py-0.5 rounded-md font-bold whitespace-nowrap z-10">
+                     Next: 14:00
+                   </div>
+                 )}
                </div>
-               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-slate-900 transition-colors">{item.label}</span>
+               <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${item.special ? 'text-primary' : 'text-slate-400 group-hover:text-slate-900'}`}>{item.label}</span>
              </div>
            ))}
         </div>
@@ -106,12 +115,12 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
           <div className="space-y-4">
             {/* 1. Full Width Featured: Emergency STAT (Matches BRT/EV) */}
             <div 
-              onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
+              onClick={() => onNavigate(isCourier ? AppScreen.MISSIONS : AppScreen.ORDER_PLACEMENT)}
               className="bg-brand-green h-40 rounded-[2rem] p-6 relative overflow-hidden shadow-card group cursor-pointer active:scale-[0.98] transition-transform"
             >
                <div className="relative z-10 w-2/3">
                  <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
-                   STAT / EV <span className="material-symbols-outlined text-base">arrow_forward</span>
+                   STAT / Emergency <span className="material-symbols-outlined text-base">arrow_forward</span>
                  </h3>
                  <p className="text-xs text-white/90 font-medium mt-2 leading-relaxed">
                    Emergency organ & tissue transport via electric fleet
@@ -124,31 +133,43 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                />
             </div>
 
-            {/* 2. Grid Row 1: Peach & Mint (Matches Train & Travel) */}
+            {/* 2. The Oxygen Line (Smart Refill) - New Feature */}
+            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 h-32 rounded-[2rem] border border-blue-100 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform flex items-center justify-between">
+                <div className="relative z-10">
+                   <div className="flex items-center gap-2 mb-1">
+                      <span className="material-symbols-outlined text-blue-500">air</span>
+                      <span className="text-xs font-black uppercase text-blue-500 tracking-widest">Smart Refill</span>
+                   </div>
+                   <h3 className="text-slate-900 font-bold text-lg leading-tight">The Oxygen Line</h3>
+                   <p className="text-[10px] text-slate-500 mt-1 w-40">Auto-book refill when tank levels hit 10%.</p>
+                </div>
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-md border border-blue-50 shrink-0">
+                   <span className="material-symbols-outlined text-3xl">propane_tank</span>
+                </div>
+            </div>
+
+            {/* 3. Grid Row: Peach & Mint */}
             <div className="grid grid-cols-2 gap-4">
-               {/* Blood Bank (Peach) */}
                <ServiceCard 
                  bg="bg-brand-peach"
                  title="Blood Bank"
                  desc="Track & book plasma"
                  icon="bloodtype"
-                 image="https://cdn-icons-png.flaticon.com/512/4006/4006197.png" // Train-like perspective
+                 image="https://cdn-icons-png.flaticon.com/512/4006/4006197.png" 
                  onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
                />
-               {/* Cold Chain (Mint) */}
                <ServiceCard 
                  bg="bg-brand-mint"
                  title="Cold Chain"
                  desc="Vaccine monitoring"
                  icon="ac_unit"
-                 image="https://cdn-icons-png.flaticon.com/512/2830/2830305.png" // Bus-like
+                 image="https://cdn-icons-png.flaticon.com/512/2830/2830305.png" 
                  onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
                />
             </div>
 
-            {/* 3. Grid Row 2: Grey & Yellow (Matches Shuttle & Taxi) */}
+            {/* 4. Grid Row: Grey & Yellow */}
             <div className="grid grid-cols-2 gap-4">
-               {/* Lab Logistics (Grey) */}
                <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-grey p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
                   <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
                     Lab Logistics <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -157,7 +178,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                   <img src="https://cdn-icons-png.flaticon.com/512/3209/3209072.png" className="absolute bottom-4 right-[-10px] w-24 drop-shadow-xl" alt="Lab" />
                </div>
 
-               {/* Ambulance (Yellow) - Replaced Pharma/Ride */}
                <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-yellow p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
                   <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
                     Ambulance <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -167,29 +187,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                </div>
             </div>
 
-            {/* 4. Grid Row 3: Light Green & Pink (Matches Parcels & Sports) */}
-            <div className="grid grid-cols-2 gap-4">
-               {/* Supplies (Light Green) */}
-               <ServiceCard 
-                 bg="bg-brand-lightgreen"
-                 title="Supplies"
-                 desc="Track your parcels"
-                 icon="inventory_2"
-                 image="https://cdn-icons-png.flaticon.com/512/679/679720.png" // Box
-                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
-               />
-               {/* Organ Transport (Pink) */}
-               <ServiceCard 
-                 bg="bg-brand-pink"
-                 title="Organ Tx"
-                 desc="Rapid organ transport"
-                 icon="favorite"
-                 image="https://cdn-icons-png.flaticon.com/512/3004/3004458.png" // People/Event
-                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
-               />
-            </div>
-
-             {/* 5. Last Item: Insurance (Orange) - Full Width */}
+            {/* 5. Last Item: Insurance */}
             <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-orange p-5 h-32 rounded-[2rem] relative overflow-hidden flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform mb-4">
                <div className="relative z-10">
                  <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
