@@ -12,11 +12,44 @@ import Wallet from './components/Wallet';
 import Onboarding from './components/Onboarding';
 import Auth from './components/Auth';
 
+// --- Emergency Header Component ---
+const EmergencyHeader: React.FC = () => {
+  return (
+    <div className="bg-stat-red text-white px-4 py-3 flex justify-between items-center shadow-lg relative z-[60] animate-in slide-in-from-top duration-500 shrink-0">
+        {/* Background Pulse Effect */}
+        <div className="absolute inset-0 bg-red-600 animate-pulse z-0 opacity-20"></div>
+        
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="size-8 rounded-full bg-white/20 flex items-center justify-center animate-pulse border border-white/30">
+            <span className="material-symbols-outlined text-xl font-bold">e911_emergency</span>
+          </div>
+          <div className="flex flex-col leading-none gap-0.5">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-90 text-red-100">Critical Mission</span>
+            <span className="font-bold text-sm drop-shadow-sm">Kidney Transport • STAT</span>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-2">
+           <div className="text-right">
+              <span className="block text-[8px] font-bold uppercase opacity-80 text-red-100">Time to Critical</span>
+              <span className="block font-mono font-bold text-lg leading-none tracking-tight text-white drop-shadow-md">14:02</span>
+           </div>
+           <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+            </span>
+        </div>
+    </div>
+  );
+};
+
 // --- Courier Layout (Biker) ---
 // Keeps existing state-based navigation for now
 const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.HOME);
   const [showNotification, setShowNotification] = useState(false);
+  // Demo: Simulating an active emergency mission for the courier
+  const [isEmergency, setIsEmergency] = useState(true);
 
   // Simulate Push Notification Logic
   useEffect(() => {
@@ -54,13 +87,15 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col animate-in fade-in duration-500">
-      <div className="flex-1 overflow-auto no-scrollbar relative">
+    <div className={`relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col animate-in fade-in duration-500 transition-all ${isEmergency ? 'border-[3px] border-stat-red' : ''}`}>
+      {isEmergency && <EmergencyHeader />}
+      
+      <div className="flex-1 overflow-auto no-scrollbar relative flex flex-col">
         {renderScreen()}
         
         {/* Simulated Push Notification Popup */}
         {showNotification && (
-          <div className="absolute top-20 left-4 right-4 z-[60] animate-in slide-in-from-top-4 fade-in duration-500">
+          <div className="absolute top-4 left-4 right-4 z-[60] animate-in slide-in-from-top-4 fade-in duration-500">
             <div className="bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex flex-col gap-3">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
@@ -103,7 +138,7 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
       </div>
 
       {/* Courier Bottom Navigation: Home, Feed, POD, Wallet, Profile */}
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
+      <div className="sticky bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
         <div className="flex justify-between items-center px-1 py-2">
           <NavButton 
             active={currentScreen === AppScreen.HOME} 
@@ -145,6 +180,8 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
 const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLogout: () => void }> = ({ user, onSwitchUser, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  // Demo: Simulating active tracking for hospital
+  const [isEmergency, setIsEmergency] = useState(true);
 
   // Adapter function to map AppScreen enum to Routes
   const handleNavigate = (screen: AppScreen) => {
@@ -173,8 +210,10 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col animate-in fade-in duration-500">
-      <div className="flex-1 overflow-auto no-scrollbar">
+    <div className={`relative w-full min-h-screen bg-[#f8f9fb] overflow-hidden mx-auto max-w-md shadow-2xl flex flex-col animate-in fade-in duration-500 transition-all ${isEmergency ? 'border-[3px] border-stat-red' : ''}`}>
+      {isEmergency && <EmergencyHeader />}
+      
+      <div className="flex-1 overflow-auto no-scrollbar flex flex-col">
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home onNavigate={handleNavigate} user={user} />} />
@@ -187,7 +226,7 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
       </div>
 
       {/* Hospital Bottom Navigation using Router Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
+      <div className="sticky bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
         <div className="flex justify-around items-center px-4 py-2">
           <NavButton 
             active={location.pathname === '/home'} 
