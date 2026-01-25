@@ -318,7 +318,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
             </div>
 
             {/* Progress Bar: Thermal Stability */}
-            <div className="w-full bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
+            <div className="w-full bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-8">
               <div className="flex justify-between items-center mb-2">
                 <p className="text-xs font-semibold">Thermal Integrity</p>
                 <p className="text-xs font-bold text-success">98%</p>
@@ -329,26 +329,36 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
               <p className="text-[10px] text-slate-500 mt-2">Last ping: 45 seconds ago</p>
             </div>
 
-            {/* Courier Info Card */}
-            <div className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                  <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4OVmBVTGUzemKaPsMCv7IC_TJSEn1RU7UemYvvX7kvDrKsn235EJz8reI5o-I2bBwKnnBgmSspMsR_4YzCgkK91N79r21jz9fh9-giBqLC1qHBx8r62O1jxIBdaUZfzTx9zk1Xv0nZXOehK4CjQVeDYLzNaqL4awm1NYc4e4dhp4l6gHj-f-zFicDeE5aimXVrG5fF336T9QpKlfxgkFXS0yJx3LnFdAZRbLmYSUHiwzi5GYkSFi_YaxozR71x0RyWF1Ms8Mc5oA" alt="Courier" />
+            {/* Courier Info Section (New & Enhanced) */}
+            <div className="w-full mt-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 ml-1">Assigned Courier</h3>
+              <div className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="size-12 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden ring-2 ring-white dark:ring-slate-800 shadow-sm">
+                    <img className="w-full h-full object-cover" src="https://i.pravatar.cc/150?img=11" alt="Courier" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <p className="text-base font-bold leading-tight text-slate-900 dark:text-white">Marcus Thompson</p>
+                      <span className="material-symbols-outlined text-primary text-sm material-symbols-filled">verified</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                       <span className="material-symbols-outlined text-amber-500 text-[10px] material-symbols-filled">star</span>
+                       <p className="text-xs text-slate-500 font-medium">4.9 • Certified Medical Courier</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold leading-tight">Marcus Thompson</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Certified Medical Courier</p>
+                <div className="flex gap-2">
+                  <button className="size-10 flex items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary/90 transition-transform active:scale-95">
+                    <span className="material-symbols-outlined text-xl material-symbols-filled">call</span>
+                  </button>
+                  <button className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-200 transition-transform active:scale-95">
+                    <span className="material-symbols-outlined text-xl material-symbols-filled">chat</span>
+                  </button>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <button className="size-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-                  <span className="material-symbols-outlined text-lg material-symbols-filled">call</span>
-                </button>
-                <button className="size-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-                  <span className="material-symbols-outlined text-lg material-symbols-filled">chat</span>
-                </button>
               </div>
             </div>
+
           </div>
         </section>
       </main>

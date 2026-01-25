@@ -10,151 +10,188 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
   const isCourier = user.role === 'COURIER';
 
   return (
-    <div className="bg-[#f8f9fb] min-h-screen pb-32 font-display text-slate-800">
+    <div className="bg-white min-h-screen pb-32 font-display text-slate-900">
       {/* Header */}
-      <header className="px-4 pt-4 pb-2 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="px-5 pt-4 pb-2 flex justify-between items-center bg-white sticky top-0 z-50">
         <div className="relative">
-          <button onClick={() => onNavigate(AppScreen.PROFILE)} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm">
+          <button onClick={() => onNavigate(AppScreen.PROFILE)} className="w-11 h-11 rounded-full bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm">
             <img src={isCourier ? "https://i.pravatar.cc/100?img=11" : "https://i.pravatar.cc/100?img=5"} alt="Profile" className="w-full h-full object-cover" />
           </button>
-          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-amber-500 rounded-full border-2 border-white"></div>
+          <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-amber-400 rounded-full border-2 border-white"></div>
         </div>
-        <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-sm text-slate-600">
-          <span className="material-symbols-outlined text-2xl">notifications</span>
+        <button className="w-11 h-11 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-sm text-slate-700 hover:bg-slate-50 transition-colors">
+          <span className="material-symbols-outlined text-[26px]">notifications</span>
         </button>
       </header>
 
       <main>
         {/* Virtual Card Section */}
-        <div className="px-4 py-4 overflow-x-auto no-scrollbar flex gap-4 snap-x snap-mandatory">
-          <div className="relative min-w-[90%] h-48 rounded-3xl overflow-hidden flex shadow-xl snap-center shrink-0">
-            {/* Left Panel: Gold/Independence Arch */}
-            <div className="w-[40%] bg-gradient-to-br from-[#eeb030] via-[#dfa020] to-[#c18a10] p-4 flex flex-col justify-between text-white relative">
-              <div className="z-10 flex flex-col gap-1">
-                <div className="flex items-center gap-1 opacity-90">
-                  <div className="w-4 h-4 bg-red-600 rounded-sm"></div>
-                  <div className="w-4 h-4 bg-green-600 rounded-sm"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-tighter">Roldzif Pay</span>
-                </div>
-                <div className="mt-2 opacity-40">
-                   <span className="material-symbols-outlined text-5xl">account_balance</span>
-                </div>
-              </div>
-              <div className="z-10">
-                <p className="text-[10px] uppercase font-bold tracking-widest opacity-80">GHS</p>
-                <p className="text-2xl font-black tracking-tighter">
-                  {isCourier ? '420.50' : '2,450.00'}
-                </p>
-                <p className="text-[8px] font-bold uppercase mt-1 opacity-70">Card Balance</p>
-              </div>
-              {/* Independence Arch Outline (Simulated) */}
-              <div className="absolute bottom-0 right-0 opacity-10 pointer-events-none">
-                <span className="material-symbols-outlined text-[100px] -mr-8 -mb-4">temple_buddhist</span>
-              </div>
+        <div className="px-5 py-6 overflow-x-auto no-scrollbar flex gap-4 snap-x snap-mandatory">
+          <div className="relative w-full h-52 rounded-[2rem] overflow-hidden flex shadow-card snap-center shrink-0 ring-1 ring-black/5">
+            {/* Left Panel: Gold Gradient */}
+            <div className="w-[38%] bg-gradient-to-b from-[#FFD54F] to-[#FFB300] p-5 flex flex-col justify-between text-white relative overflow-hidden">
+               {/* Decorative Circle */}
+               <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-white/20 blur-2xl"></div>
+               
+               <div className="z-10 flex flex-col gap-1.5">
+                  {/* Brand Logo Abstract */}
+                  <div className="flex items-center gap-1 opacity-100">
+                    <div className="w-3 h-3 bg-red-600 rounded-[2px] rotate-45"></div>
+                    <div className="w-3 h-3 bg-green-600 rounded-[2px] rotate-45 -ml-1.5"></div>
+                    <span className="text-[11px] font-black text-slate-900 ml-1.5 tracking-tight">roldzif</span>
+                  </div>
+                  
+                  {/* Star Icon */}
+                  <div className="mt-4 text-white/90">
+                     <span className="material-symbols-filled text-4xl drop-shadow-sm">star</span>
+                  </div>
+               </div>
+
+               <div className="z-10 mt-auto">
+                 <p className="text-[10px] uppercase font-bold text-slate-900/60 tracking-wider mb-0.5">Balance</p>
+                 <p className="text-[11px] font-black text-slate-900">GHS</p>
+                 <p className="text-2xl font-black tracking-tighter text-slate-900 leading-none">
+                   {isCourier ? '420.50' : '0.00'}
+                 </p>
+                 <p className="text-[9px] font-bold text-slate-900/50 mt-1">Card Balance</p>
+               </div>
+               
+               {/* Arch Graphic Outline */}
+               <div className="absolute bottom-0 right-0 opacity-20 pointer-events-none text-slate-900">
+                 <span className="material-symbols-outlined text-[120px] -mr-10 -mb-6 leading-none">temple_hindu</span>
+               </div>
             </div>
 
-            {/* Right Panel: Symbols */}
-            <div className="w-[60%] bg-white p-4 flex flex-col justify-between border-y border-r border-slate-100 rounded-r-3xl relative">
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none grid grid-cols-3 gap-4 p-4 overflow-hidden">
-                {[...Array(9)].map((_, i) => (
-                  <span key={i} className="material-symbols-outlined text-4xl">fingerprint</span>
-                ))}
+            {/* Right Panel: White Pattern */}
+            <div className="w-[62%] bg-white p-5 flex flex-col justify-between relative">
+              {/* Pattern Background */}
+              <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+              
+              <div className="flex justify-end items-start z-10">
+                <p className="text-[10px] text-slate-400 font-medium w-24 leading-tight text-right">Virtual Card Details</p>
               </div>
               
-              <div className="flex justify-between items-start z-10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Virtual Card</p>
-                <span className="text-[10px] font-bold text-primary">Details</span>
-              </div>
-              
-              <div className="z-10">
-                <p className="text-slate-400 text-[10px] font-bold mb-1">Card Number</p>
-                <p className="text-slate-800 font-bold tracking-[0.2em] text-lg">1764 6367</p>
+              <div className="z-10 flex flex-col items-end">
+                <div className="w-full h-12 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Adinkra_Symbols.svg/1200px-Adinkra_Symbols.svg.png')] bg-contain bg-no-repeat bg-right opacity-10 mb-2"></div>
+                <p className="text-slate-900 font-bold tracking-[0.15em] text-lg">1764 6367</p>
+                <p className="text-[9px] text-slate-400 font-bold mt-1">Card Number</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Partners Reel */}
-        <div className="px-4 py-2 overflow-x-auto no-scrollbar flex items-center gap-6 border-b border-slate-100">
-           <PartnerItem label="ABSA" />
+        <div className="pl-5 pr-5 py-2 mb-4 overflow-x-auto no-scrollbar flex items-center gap-8">
+           <PartnerItem label="ABSA" color="text-red-600" />
+           <PartnerItem label="Shoprite" color="text-red-500" />
            <PartnerItem label="Shoprite" hasDot />
-           <PartnerItem label="GPRTU" logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6A23UfU9G_pX1O_FzW-PqVjP6H_P6L8fG5g&s" />
+           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Coat_of_arms_of_Ghana.svg/1200px-Coat_of_arms_of_Ghana.svg.png" className="h-8 w-auto grayscale opacity-50" alt="Gov" />
            <PartnerItem label="Road Safety" />
-           <PartnerItem label="Korle Bu" />
         </div>
 
-        {/* Service Options Grid */}
-        <div className="px-4 pt-6">
-          <h2 className="text-xl font-extrabold tracking-tight mb-4 px-1">Logistics Options</h2>
+        {/* Logistics Options Grid */}
+        <div className="px-5">
+          <h2 className="text-lg font-bold text-slate-800 mb-5">Logistics Options</h2>
           
           <div className="space-y-4">
-            {/* Main Featured Card */}
-            <ServiceCard 
-              color="bg-[#00a87e]" 
-              title="Emergency STAT / EV" 
-              desc="Rapid organ and tissue transport via electric fleet"
-              image="https://www.pngplay.com/wp-content/uploads/9/Medicine-Bike-Transparent-Free-PNG.png"
-              isFullWidth
+            {/* 1. Full Width Featured: Emergency STAT (Matches BRT/EV) */}
+            <div 
               onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-            />
-
-            <div className="grid grid-cols-2 gap-3">
-               <ServiceCard 
-                color="bg-[#fde7e2]" 
-                title="Blood Bank" 
-                desc="Platelets and plasma logistics"
-                image="https://cdn-icons-png.flaticon.com/512/11542/11542939.png"
-                onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-              />
-               <ServiceCard 
-                color="bg-[#e7f5ed]" 
-                title="Cold Chain" 
-                desc="Vaccine and biological monitoring"
-                image="https://cdn-icons-png.flaticon.com/512/4204/4204482.png"
-                onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-              />
-               <ServiceCard 
-                color="bg-[#eef2f6]" 
-                title="Lab Tests" 
-                desc="Secure sample chain of custody"
-                image="https://cdn-icons-png.flaticon.com/512/3063/3063176.png"
-                onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-              />
-               <ServiceCard 
-                color="bg-[#fff4e1]" 
-                title="Pharma / Ride" 
-                desc="General medical supply delivery"
-                image="https://cdn-icons-png.flaticon.com/512/4320/4320330.png"
-                onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-              />
-               <ServiceCard 
-                color="bg-[#e9f2ff]" 
-                title="Surplus Gear" 
-                desc="Hospital equipment surplus auctions"
-                image="https://cdn-icons-png.flaticon.com/512/1041/1041846.png"
-                onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-              />
-               <ServiceCard 
-                color="bg-[#feeaf1]" 
-                title="Staff Shuttle" 
-                desc="Medical personnel transport"
-                image="https://cdn-icons-png.flaticon.com/512/2830/2830305.png"
-                onClick={() => onNavigate(isCourier ? AppScreen.JOB_FEED : AppScreen.ORDER_PLACEMENT)}
-              />
+              className="bg-brand-green h-40 rounded-[2rem] p-6 relative overflow-hidden shadow-card group cursor-pointer active:scale-[0.98] transition-transform"
+            >
+               <div className="relative z-10 w-2/3">
+                 <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
+                   STAT / EV <span className="material-symbols-outlined text-base">arrow_forward</span>
+                 </h3>
+                 <p className="text-xs text-white/90 font-medium mt-2 leading-relaxed">
+                   Emergency organ & tissue transport via electric fleet
+                 </p>
+               </div>
+               <img 
+                 src="https://www.pngplay.com/wp-content/uploads/9/Medicine-Bike-Transparent-Free-PNG.png" 
+                 alt="Bike"
+                 className="absolute bottom-2 right-[-20px] w-48 drop-shadow-2xl transition-transform group-hover:scale-105"
+               />
             </div>
 
-            {/* Insurance Card */}
-            <div className="bg-[#fff9ed] rounded-3xl p-6 flex justify-between items-center border border-amber-100 shadow-sm">
-               <div>
-                  <h3 className="text-lg font-black flex items-center gap-2">
-                    Insurance <span className="material-symbols-outlined text-sm">trending_flat</span>
+            {/* 2. Grid Row 1: Peach & Mint (Matches Train & Travel) */}
+            <div className="grid grid-cols-2 gap-4">
+               {/* Blood Bank (Peach) */}
+               <ServiceCard 
+                 bg="bg-brand-peach"
+                 title="Blood Bank"
+                 desc="Track & book plasma"
+                 icon="bloodtype"
+                 image="https://cdn-icons-png.flaticon.com/512/4006/4006197.png" // Train-like perspective
+                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+               />
+               {/* Cold Chain (Mint) */}
+               <ServiceCard 
+                 bg="bg-brand-mint"
+                 title="Cold Chain"
+                 desc="Vaccine monitoring"
+                 icon="ac_unit"
+                 image="https://cdn-icons-png.flaticon.com/512/2830/2830305.png" // Bus-like
+                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+               />
+            </div>
+
+            {/* 3. Grid Row 2: Grey & Yellow (Matches Shuttle & Taxi) */}
+            <div className="grid grid-cols-2 gap-4">
+               {/* Lab Logistics (Grey) */}
+               <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-grey p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+                  <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
+                    Lab Logistics <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </h3>
-                  <p className="text-xs text-slate-500 font-medium mt-1">Explore medical coverage packages</p>
+                  <p className="text-[10px] text-slate-500 mt-2 w-2/3 leading-tight">Secure sample chain of custody</p>
+                  <img src="https://cdn-icons-png.flaticon.com/512/3209/3209072.png" className="absolute bottom-4 right-[-10px] w-24 drop-shadow-xl" alt="Lab" />
                </div>
-               <div className="w-16 h-16 bg-amber-400 rounded-full flex items-center justify-center shadow-lg shadow-amber-400/20">
-                  <span className="material-symbols-outlined text-white text-4xl">sunny</span>
+
+               {/* Pharma Direct (Yellow) */}
+               <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-yellow p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+                  <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
+                    Pharma / Ride <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-2 w-2/3 leading-tight">Choose your delivery speed</p>
+                  <img src="https://cdn-icons-png.flaticon.com/512/3063/3063822.png" className="absolute bottom-2 right-0 w-28 drop-shadow-xl" alt="Car" />
                </div>
             </div>
+
+            {/* 4. Grid Row 3: Light Green & Pink (Matches Parcels & Sports) */}
+            <div className="grid grid-cols-2 gap-4">
+               {/* Supplies (Light Green) */}
+               <ServiceCard 
+                 bg="bg-brand-lightgreen"
+                 title="Supplies"
+                 desc="Track your parcels"
+                 icon="inventory_2"
+                 image="https://cdn-icons-png.flaticon.com/512/679/679720.png" // Box
+                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+               />
+               {/* Organ Transport (Pink) */}
+               <ServiceCard 
+                 bg="bg-brand-pink"
+                 title="Organ Tx"
+                 desc="Find & pay for events"
+                 icon="favorite"
+                 image="https://cdn-icons-png.flaticon.com/512/3004/3004458.png" // People/Event
+                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+               />
+            </div>
+
+             {/* 5. Last Item: Insurance (Orange) - Full Width */}
+            <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-orange p-5 h-32 rounded-[2rem] relative overflow-hidden flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform mb-4">
+               <div className="relative z-10">
+                 <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
+                   Insurance <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                 </h3>
+                 <p className="text-[10px] text-slate-500 mt-1">Explore medical logistics coverage</p>
+               </div>
+               <div className="w-16 h-16 bg-amber-400 rounded-full flex items-center justify-center text-white shadow-lg shrink-0">
+                  <span className="material-symbols-outlined text-4xl">verified_user</span>
+               </div>
+            </div>
+
           </div>
         </div>
       </main>
@@ -162,43 +199,40 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
   );
 };
 
-const PartnerItem: React.FC<{ label: string; logo?: string; hasDot?: boolean }> = ({ label, logo, hasDot }) => (
+const PartnerItem: React.FC<{ label: string; logo?: string; hasDot?: boolean; color?: string }> = ({ label, logo, hasDot, color }) => (
   <div className="flex items-center gap-2 shrink-0">
     {hasDot && <span className="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>}
     {logo ? (
       <img src={logo} alt={label} className="h-6 w-auto grayscale" />
     ) : (
-      <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{label}</span>
+      <span className={`text-[12px] font-black uppercase tracking-wide ${color || 'text-slate-800'}`}>{label}</span>
     )}
-    <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
   </div>
 );
 
 interface ServiceCardProps {
-  color: string;
+  bg: string;
   title: string;
   desc: string;
   image: string;
-  isFullWidth?: boolean;
+  icon?: string;
   onClick: () => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ color, title, desc, image, isFullWidth, onClick }) => (
+const ServiceCard: React.FC<ServiceCardProps> = ({ bg, title, desc, image, icon, onClick }) => (
   <button 
     onClick={onClick}
-    className={`${color} ${isFullWidth ? 'p-6 h-40' : 'p-4 h-48'} rounded-3xl relative overflow-hidden flex flex-col justify-start text-left shadow-sm hover:scale-[0.98] transition-all group`}
+    className={`${bg} p-5 h-44 rounded-[2rem] relative overflow-hidden flex flex-col justify-start text-left shadow-card active:scale-[0.98] transition-transform`}
   >
-    <div className="z-10 w-[70%]">
-      <h3 className={`font-black tracking-tight flex items-center gap-2 ${isFullWidth ? 'text-xl text-white' : 'text-sm text-slate-800'}`}>
-        {title} <span className="material-symbols-outlined text-sm">trending_flat</span>
+    <div className="z-10 relative">
+      <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
+        {title} <span className="material-symbols-outlined text-sm">arrow_forward</span>
       </h3>
-      <p className={`mt-2 font-medium leading-tight ${isFullWidth ? 'text-xs text-white/90' : 'text-[10px] text-slate-500'}`}>
+      <p className="mt-2 text-[10px] text-slate-600 font-medium leading-tight w-2/3">
         {desc}
       </p>
     </div>
-    <div className={`absolute bottom-0 right-0 ${isFullWidth ? 'w-48 -mr-6 -mb-4' : 'w-32 -mr-4 -mb-2'} transition-transform group-hover:scale-105`}>
-      <img src={image} alt={title} className="w-full h-auto drop-shadow-2xl" />
-    </div>
+    <img src={image} alt={title} className="absolute bottom-2 right-[-10px] w-32 h-auto drop-shadow-xl object-contain" />
   </button>
 );
 
