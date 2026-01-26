@@ -9,6 +9,7 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ onNavigate, user, onCategorySelect }) => {
   const isCourier = user.role === 'COURIER';
+  const isDoctor = user.role === 'DOCTOR' || user.role === 'PHARMACIST' || user.role === 'HR';
 
   const handleCardClick = (category: string) => {
     if (isCourier && onCategorySelect) {
@@ -34,63 +35,105 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, onCategorySelect }) => {
       </header>
 
       <main>
-        {/* Virtual Card Section */}
+        {/* Virtual Card or Dashboard Summary */}
         <div className="px-5 py-6 overflow-x-auto no-scrollbar flex gap-4 snap-x snap-mandatory">
-          <div className="relative w-full h-52 rounded-[2rem] overflow-hidden flex shadow-card snap-center shrink-0 ring-1 ring-black/5">
-            {/* Left Panel: Gold Gradient */}
-            <div className="w-[38%] bg-gradient-to-b from-[#FFD54F] to-[#FFB300] p-5 flex flex-col justify-between text-white relative overflow-hidden">
-               {/* Decorative Circle */}
-               <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-white/20 blur-2xl"></div>
-               
-               <div className="z-10 flex flex-col gap-1.5">
-                  {/* Brand Logo Abstract */}
-                  <div className="flex items-center gap-1 opacity-100">
-                    <div className="w-3 h-3 bg-red-600 rounded-[2px] rotate-45"></div>
-                    <div className="w-3 h-3 bg-green-600 rounded-[2px] rotate-45 -ml-1.5"></div>
-                    <span className="text-[11px] font-black text-slate-900 ml-1.5 tracking-tight">roldzif</span>
-                  </div>
-                  
-                  {/* Star Icon */}
-                  <div className="mt-4 text-white/90">
-                     <span className="material-symbols-filled text-4xl drop-shadow-sm">star</span>
-                  </div>
-               </div>
+          {isDoctor ? (
+            /* DOCTOR / STAFF DASHBOARD CARD */
+            <div className="relative w-full h-52 rounded-[2rem] overflow-hidden flex shadow-card snap-center shrink-0 ring-1 ring-black/5 bg-slate-900 text-white">
+               {/* Background Effects */}
+               <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+               <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -ml-10 -mb-10"></div>
 
-               <div className="z-10 mt-auto">
-                 <p className="text-[10px] uppercase font-bold text-slate-900/60 tracking-wider mb-0.5">Balance</p>
-                 <p className="text-[11px] font-black text-slate-900">GHS</p>
-                 <p className="text-2xl font-black tracking-tighter text-slate-900 leading-none">
-                   {isCourier ? '420.50' : '0.00'}
-                 </p>
+               <div className="relative z-10 p-6 flex flex-col justify-between w-full h-full">
+                  <div className="flex justify-between items-start">
+                     <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Current Shift</p>
+                        <h2 className="text-2xl font-bold">Good Morning, Dr.</h2>
+                     </div>
+                     <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-[10px] font-bold uppercase">On Duty</span>
+                     </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                     <div className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-sm">
+                        <p className="text-3xl font-black">3</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Active Orders</p>
+                     </div>
+                     <div className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-sm">
+                        <p className="text-3xl font-black text-amber-400">1</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Pending Lab</p>
+                     </div>
+                  </div>
+
+                  <button 
+                    onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+                    className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                    New Transport Request
+                  </button>
                </div>
             </div>
+          ) : (
+            /* COURIER / ADMIN FINANCIAL CARD */
+            <div className="relative w-full h-52 rounded-[2rem] overflow-hidden flex shadow-card snap-center shrink-0 ring-1 ring-black/5">
+              {/* Left Panel: Gold Gradient */}
+              <div className="w-[38%] bg-gradient-to-b from-[#FFD54F] to-[#FFB300] p-5 flex flex-col justify-between text-white relative overflow-hidden">
+                 {/* Decorative Circle */}
+                 <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-white/20 blur-2xl"></div>
+                 
+                 <div className="z-10 flex flex-col gap-1.5">
+                    {/* Brand Logo Abstract */}
+                    <div className="flex items-center gap-1 opacity-100">
+                      <div className="w-3 h-3 bg-red-600 rounded-[2px] rotate-45"></div>
+                      <div className="w-3 h-3 bg-green-600 rounded-[2px] rotate-45 -ml-1.5"></div>
+                      <span className="text-[11px] font-black text-slate-900 ml-1.5 tracking-tight">roldzif</span>
+                    </div>
+                    
+                    {/* Star Icon */}
+                    <div className="mt-4 text-white/90">
+                       <span className="material-symbols-filled text-4xl drop-shadow-sm">star</span>
+                    </div>
+                 </div>
 
-            {/* Right Panel: White Pattern */}
-            <div className="w-[62%] bg-white p-5 flex flex-col justify-between relative">
-              {/* Pattern Background */}
-              <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-              
-              <div className="flex justify-end items-start z-10">
-                <p className="text-[10px] text-slate-400 font-medium w-24 leading-tight text-right">Virtual Card Details</p>
+                 <div className="z-10 mt-auto">
+                   <p className="text-[10px] uppercase font-bold text-slate-900/60 tracking-wider mb-0.5">Balance</p>
+                   <p className="text-[11px] font-black text-slate-900">GHS</p>
+                   <p className="text-2xl font-black tracking-tighter text-slate-900 leading-none">
+                     {isCourier ? '420.50' : '2,400.00'}
+                   </p>
+                 </div>
               </div>
-              
-              {/* Quick Top-up Integration */}
-              <div className="flex flex-col items-end gap-3 z-10">
-                <button 
-                  onClick={() => onNavigate(AppScreen.WALLET)}
-                  className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 pl-1.5 pr-2.5 py-1.5 rounded-full hover:bg-slate-100 transition-colors"
-                >
-                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-[8px] font-black text-slate-900">M</div>
-                  <span className="text-[10px] font-bold text-slate-700">Quick Load</span>
-                </button>
 
-                <div className="flex flex-col items-end">
-                    <p className="text-slate-900 font-bold tracking-[0.15em] text-lg">1764 6367</p>
-                    <p className="text-[9px] text-slate-400 font-bold mt-1">Card Number</p>
+              {/* Right Panel: White Pattern */}
+              <div className="w-[62%] bg-white p-5 flex flex-col justify-between relative">
+                {/* Pattern Background */}
+                <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                
+                <div className="flex justify-end items-start z-10">
+                  <p className="text-[10px] text-slate-400 font-medium w-24 leading-tight text-right">Virtual Card Details</p>
+                </div>
+                
+                {/* Quick Top-up Integration (Visible for Admin/Courier) */}
+                <div className="flex flex-col items-end gap-3 z-10">
+                  <button 
+                    onClick={() => onNavigate(AppScreen.WALLET)}
+                    className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 pl-1.5 pr-2.5 py-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                  >
+                    <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-[8px] font-black text-slate-900">M</div>
+                    <span className="text-[10px] font-bold text-slate-700">Quick Load</span>
+                  </button>
+
+                  <div className="flex flex-col items-end">
+                      <p className="text-slate-900 font-bold tracking-[0.15em] text-lg">1764 6367</p>
+                      <p className="text-[9px] text-slate-400 font-bold mt-1">Card Number</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Transport Categories Reel (Dynamic States) */}

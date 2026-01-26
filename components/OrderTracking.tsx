@@ -109,7 +109,10 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Priority: Urgent Medical</p>
           </div>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <button 
+            onClick={() => alert('Order Details:\nType: Kidney Transport\nDest: Korle Bu\nProtocol: STAT')}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
+        >
           <span className="material-symbols-outlined text-xl">info</span>
         </button>
       </header>
@@ -390,10 +393,16 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="size-10 flex items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary/90 transition-transform active:scale-95">
+                  <button 
+                    onClick={() => window.location.href = 'tel:1234567890'}
+                    className="size-10 flex items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary/90 transition-transform active:scale-95"
+                  >
                     <span className="material-symbols-outlined text-xl material-symbols-filled">call</span>
                   </button>
-                  <button className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-200 transition-transform active:scale-95">
+                  <button 
+                    onClick={() => alert('In-app chat opening...')}
+                    className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-200 transition-transform active:scale-95"
+                  >
                     <span className="material-symbols-outlined text-xl material-symbols-filled">chat</span>
                   </button>
                 </div>
@@ -406,7 +415,10 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
 
       {/* Bottom Action Bar (Fixed) */}
       <footer className="p-4 bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 z-50">
-        <button className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-transform active:scale-[0.98]">
+        <button 
+            onClick={() => onNavigate(AppScreen.CUSTODY)}
+            className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-transform active:scale-[0.98]"
+        >
           <span className="material-symbols-outlined text-xl">history</span>
           View Logistics Log
         </button>

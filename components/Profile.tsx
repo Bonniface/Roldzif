@@ -1,25 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppScreen, User } from '../types';
 
 interface ProfileProps {
   onNavigate: (screen: AppScreen) => void;
   user: User;
   onSwitchUser: () => void;
+  onLogout: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => {
+const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser, onLogout }) => {
   const isCourier = user.role === 'COURIER';
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   const avatarUrl = isCourier 
     ? "https://i.pravatar.cc/300?img=11" // Marcus
     : "https://i.pravatar.cc/300?img=5"; // Sarah
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen text-slate-900 dark:text-white font-display pb-24 flex flex-col">
+    <div className="bg-background-light dark:bg-background-dark min-h-screen text-slate-900 dark:text-white font-display pb-24 flex flex-col relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-top-4">
+           <div className="bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-bold shadow-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">info</span>
+              {toastMessage}
+           </div>
+        </div>
+      )}
+
       {/* Header with Settings */}
       <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
         <h1 className="text-lg font-bold">My Profile</h1>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
+        <button 
+          onClick={() => showToast('Settings coming soon')}
+          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300"
+        >
           <span className="material-symbols-outlined">settings</span>
         </button>
       </header>
@@ -29,7 +49,7 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => 
         <div className="flex flex-col items-center mb-8 relative">
           <div className="absolute top-0 w-full h-32 bg-gradient-to-b from-primary/10 to-transparent -z-10 blur-3xl opacity-50"></div>
           
-          <div className="relative group cursor-pointer">
+          <div className="relative group cursor-pointer" onClick={() => showToast('Edit photo feature coming soon')}>
             <div className={`w-28 h-28 rounded-full p-1 bg-gradient-to-tr ${isCourier ? 'from-primary to-blue-400' : 'from-emerald-500 to-teal-400'}`}>
               <img 
                 src={avatarUrl}
@@ -98,11 +118,11 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => 
           <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
              {isCourier ? (
                <>
-                 <MenuItem icon="person" label="Personal Information" />
+                 <MenuItem icon="person" label="Personal Information" onClick={() => showToast('Personal Info coming soon')} />
                  <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="history" label="Delivery History" />
+                 <MenuItem icon="history" label="Delivery History" onClick={() => onNavigate(AppScreen.MISSIONS)} />
                  <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="account_balance_wallet" label="Earnings & Payouts" badge="GHS 420.00" />
+                 <MenuItem icon="account_balance_wallet" label="Earnings & Payouts" badge="GHS 420.00" onClick={() => onNavigate(AppScreen.WALLET)} />
                  <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
                  <MenuItem 
                    icon="verified_user" 
@@ -114,24 +134,24 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => 
                </>
              ) : (
                <>
-                 <MenuItem icon="domain" label="Organization Details" />
+                 <MenuItem icon="domain" label="Organization Details" onClick={() => showToast('Org Details coming soon')} />
                  <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="history" label="Order History" />
+                 <MenuItem icon="history" label="Order History" onClick={() => onNavigate(AppScreen.ORDER_TRACKING)} />
                  <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="receipt_long" label="Billing & Invoices" badge="Due: GHS 1.2k" />
+                 <MenuItem icon="receipt_long" label="Billing & Invoices" badge="Due: GHS 1.2k" onClick={() => onNavigate(AppScreen.WALLET)} />
                  <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="policy" label="Compliance Docs" />
+                 <MenuItem icon="policy" label="Compliance Docs" onClick={() => onNavigate(AppScreen.KYC_VERIFICATION)} />
                </>
              )}
           </div>
 
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1 mt-6">Preferences</h3>
           <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-             <MenuItem icon="notifications" label="Notifications" />
+             <MenuItem icon="notifications" label="Notifications" onClick={() => showToast('Notification settings coming soon')} />
              <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-             <MenuItem icon="security" label="Security & Privacy" />
+             <MenuItem icon="security" label="Security & Privacy" onClick={() => showToast('Security settings coming soon')} />
              <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-             <MenuItem icon="help" label="Help & Support" />
+             <MenuItem icon="help" label="Help & Support" onClick={() => showToast('Support coming soon')} />
           </div>
 
            {/* Switch User Button */}
@@ -143,7 +163,10 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser }) => 
              Switch to {isCourier ? 'Hospital View' : 'Courier View'}
            </button>
 
-           <button className="w-full mt-3 py-4 flex items-center justify-center gap-2 text-stat-red font-bold bg-stat-red/10 rounded-xl hover:bg-stat-red/20 transition-all active:scale-[0.98]">
+           <button 
+             onClick={onLogout}
+             className="w-full mt-3 py-4 flex items-center justify-center gap-2 text-stat-red font-bold bg-stat-red/10 rounded-xl hover:bg-stat-red/20 transition-all active:scale-[0.98]"
+           >
              <span className="material-symbols-outlined">logout</span>
              Sign Out
            </button>

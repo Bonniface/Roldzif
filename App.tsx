@@ -80,9 +80,11 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
       case AppScreen.WALLET:
         return <Wallet onNavigate={setCurrentScreen} user={user} />;
       case AppScreen.PROFILE:
-        return <Profile onNavigate={setCurrentScreen} user={user} onSwitchUser={onSwitchUser} />;
+        return <Profile onNavigate={setCurrentScreen} user={user} onSwitchUser={onSwitchUser} onLogout={onLogout} />;
       case AppScreen.KYC_VERIFICATION:
         return <KYCVerification onNavigate={setCurrentScreen} />;
+      case AppScreen.ORDER_TRACKING:
+        return <OrderTracking onNavigate={setCurrentScreen} />;
       default:
         return <Home onNavigate={setCurrentScreen} user={user} onCategorySelect={handleCategorySelect} />;
     }
@@ -127,6 +129,8 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
                 <button 
                   onClick={() => {
                     setShowNotification(false);
+                    // Navigate to custody/mission acceptance
+                    setCurrentScreen(AppScreen.CUSTODY);
                   }}
                   className="bg-white text-slate-900 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-slate-200 transition-colors"
                 >
@@ -182,6 +186,9 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
   const navigate = useNavigate();
   const location = useLocation();
   const [isEmergency, setIsEmergency] = useState(true);
+  
+  const isMedicalStaff = ['DOCTOR', 'PHARMACIST', 'HR'].includes(user.role);
+  const isAdmin = user.role === 'HOSPITAL_ADMIN';
 
   // Adapter function to map AppScreen enum to Routes
   const handleNavigate = (screen: AppScreen) => {
@@ -220,7 +227,7 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
           <Route path="/order" element={<OrderPlacement onNavigate={handleNavigate} />} />
           <Route path="/track" element={<OrderTracking onNavigate={handleNavigate} />} />
           <Route path="/wallet" element={<Wallet onNavigate={handleNavigate} user={user} />} />
-          <Route path="/profile" element={<Profile onNavigate={handleNavigate} user={user} onSwitchUser={onSwitchUser} />} />
+          <Route path="/profile" element={<Profile onNavigate={handleNavigate} user={user} onSwitchUser={onSwitchUser} onLogout={onLogout} />} />
           <Route path="/kyc" element={<KYCVerification onNavigate={handleNavigate} />} />
         </Routes>
       </div>
@@ -234,18 +241,34 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
             icon="home" 
             label="Home" 
           />
+          
+          {/* Medical Staff get direct Order Access */}
+          {isMedicalStaff && (
+             <NavButton 
+               active={location.pathname === '/order'} 
+               onClick={() => navigate('/order')} 
+               icon="add_circle" 
+               label="Order" 
+             />
+          )}
+
           <NavButton 
             active={location.pathname === '/track'} 
             onClick={() => navigate('/track')} 
             icon="radar" 
             label="Track" 
           />
-          <NavButton 
-            active={location.pathname === '/wallet'} 
-            onClick={() => navigate('/wallet')} 
-            icon="account_balance_wallet" 
-            label="Wallet" 
-          />
+
+          {/* Admins get Wallet Access */}
+          {isAdmin && (
+             <NavButton 
+               active={location.pathname === '/wallet'} 
+               onClick={() => navigate('/wallet')} 
+               icon="account_balance_wallet" 
+               label="Billing" 
+             />
+          )}
+
           <NavButton 
             active={location.pathname === '/profile'} 
             onClick={() => navigate('/profile')} 

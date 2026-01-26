@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppScreen } from '../types';
 
 interface KYCVerificationProps {
@@ -27,6 +27,12 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
   const [view, setView] = useState<'LIST' | 'DETAILS' | 'CAPTURE'>('LIST');
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Camera State
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   // Initial State with required documents
   const [documents, setDocuments] = useState<KYCDocument[]>([
@@ -77,8 +83,15 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
   };
 
   const handleBack = () => {
-    if (view === 'CAPTURE') setView('DETAILS');
-    else if (view === 'DETAILS') {
+    if (view === 'CAPTURE') {
+       if (capturedImage) {
+         setCapturedImage(null);
+         startCamera(); // Restart camera if cancelling review
+       } else {
+         stopCamera();
+         setView('DETAILS');
+       }
+    } else if (view === 'DETAILS') {
        setActiveDocId(null);
        setView('LIST');
     } else {
@@ -90,12 +103,85 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
     setView('CAPTURE');
   };
 
-  const simulateFileUpload = (type: 'IMAGE' | 'PDF') => {
+  // --- Camera Functions ---
+
+  const startCamera = async () => {
+    setCameraError(null);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError("Camera API not supported in this browser.");
+        return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' },
+        audio: false 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Camera Error:", err);
+      setCameraError("Could not access camera. Please allow permissions.");
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const takePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      // Set canvas dimensions to match video stream
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Flip horizontally if using front camera (optional, assuming environment here)
+        // ctx.translate(canvas.width, 0);
+        // ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setCapturedImage(dataUrl);
+        stopCamera(); // Stop stream to save resources while reviewing
+      }
+    }
+  };
+
+  const retakePhoto = () => {
+    setCapturedImage(null);
+    startCamera();
+  };
+
+  const confirmPhoto = () => {
+     if (!capturedImage) return;
+     addFileToDocument(capturedImage, 'IMAGE');
+  };
+
+  const simulateFileUpload = (type: 'PDF') => {
+    // Only used for PDF button now
     setIsProcessing(true);
     setTimeout(() => {
+        addFileToDocument(null, type);
+    }, 1500);
+  };
+
+  const addFileToDocument = (fileData: string | null, type: 'IMAGE' | 'PDF') => {
+     setIsProcessing(true);
+     // Simulate upload delay
+     setTimeout(() => {
         const newFile: KYCFile = {
             id: Math.random().toString(36).substr(2, 9),
-            name: type === 'IMAGE' ? `scan_${Date.now()}.jpg` : `doc_${Date.now()}.pdf`,
+            name: type === 'IMAGE' ? `cam_scan_${Date.now()}.jpg` : `doc_upload_${Date.now()}.pdf`,
             type: type,
             date: new Date().toLocaleString()
         };
@@ -103,7 +189,6 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
         setDocuments(prev => prev.map(doc => {
             if (doc.id === activeDocId) {
                 const updatedFiles = [...doc.files, newFile];
-                // Automatically set to UPLOADED if files exist and it was PENDING
                 const newStatus = doc.status === 'PENDING' ? 'UPLOADED' : doc.status;
                 return { ...doc, files: updatedFiles, status: newStatus };
             }
@@ -111,9 +196,23 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
         }));
 
         setIsProcessing(false);
+        setCapturedImage(null);
+        stopCamera();
         setView('DETAILS');
-    }, 1500);
+     }, 1000);
   };
+
+  // Manage Camera Lifecycle
+  useEffect(() => {
+    if (view === 'CAPTURE') {
+      if (!capturedImage) startCamera();
+    } else {
+      stopCamera();
+      setCapturedImage(null);
+    }
+    return () => stopCamera();
+  }, [view]);
+
 
   const handleDeleteFile = (fileId: string) => {
       setDocuments(prev => prev.map(doc => {
@@ -321,75 +420,132 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
     <div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-black font-display text-white">
       {/* Top Overlay */}
       <div className="flex items-center p-4 justify-between absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 to-transparent pb-12">
-        <button onClick={() => setView('DETAILS')} className="flex size-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md cursor-pointer hover:bg-white/20 transition-colors">
+        <button onClick={handleBack} className="flex size-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md cursor-pointer hover:bg-white/20 transition-colors">
           <span className="material-symbols-outlined text-white">close</span>
         </button>
         <div className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
-            <p className="text-xs font-bold uppercase tracking-widest text-white/90">Add to: {activeDoc?.title}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white/90">
+                {capturedImage ? 'Review Photo' : `Add to: ${activeDoc?.title}`}
+            </p>
         </div>
         <div className="size-10"></div>
       </div>
 
-      {/* Camera Preview Area */}
-      <div className="flex-1 relative flex flex-col items-center justify-center bg-slate-900">
-        <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1622675363311-ac97f3a9e383?q=80&w=2787&auto=format&fit=crop')" }}></div>
-        
-        {/* Viewfinder */}
-        <div className="relative z-10 w-[85%] aspect-[3/4] max-w-sm rounded-2xl border-2 border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] flex flex-col items-center justify-center">
-            {/* Corners */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl -mt-0.5 -ml-0.5"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl -mt-0.5 -mr-0.5"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl -mb-0.5 -ml-0.5"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl -mb-0.5 -mr-0.5"></div>
+      {/* Camera/Image Preview Area */}
+      <div className="flex-1 relative flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
+        {/* Hidden Canvas for Capture */}
+        <canvas ref={canvasRef} className="hidden"></canvas>
 
-            {isProcessing ? (
-                <div className="flex flex-col items-center animate-in fade-in zoom-in duration-300">
-                    <div className="size-16 rounded-full border-4 border-white/20 border-t-primary animate-spin mb-4"></div>
-                    <p className="text-lg font-bold">Processing...</p>
-                </div>
-            ) : (
-                <div className="flex flex-col items-center opacity-60">
-                    <span className="material-symbols-outlined text-6xl text-white mb-2">{activeDoc?.icon}</span>
-                    <p className="text-sm font-medium text-center px-8">Align document within frame</p>
-                </div>
-            )}
-        </div>
+        {capturedImage ? (
+             <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
+        ) : (
+             <>
+                <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline 
+                    muted 
+                    className={`w-full h-full object-cover transition-opacity duration-300 ${cameraError ? 'opacity-0' : 'opacity-100'}`}
+                />
+                
+                {/* Fallback/Error State */}
+                {(!videoRef.current?.srcObject || cameraError) && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-10">
+                        {cameraError ? (
+                            <div className="text-center px-6">
+                                <span className="material-symbols-outlined text-4xl text-red-500 mb-2">videocam_off</span>
+                                <p className="text-sm font-bold text-red-400 mb-4">{cameraError}</p>
+                                <button onClick={startCamera} className="bg-white/10 px-4 py-2 rounded-lg text-xs font-bold">Retry Camera</button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <div className="size-12 border-4 border-white/20 border-t-white rounded-full animate-spin mb-4"></div>
+                                <p className="text-xs font-bold text-white/50">Starting Camera...</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+             </>
+        )}
         
-        <div className="absolute bottom-36 left-0 right-0 text-center z-20 px-6">
-            <p className="text-xs font-medium text-white/70 bg-black/40 inline-block px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                Make sure text is readable and well-lit
-            </p>
-        </div>
+        {/* Viewfinder Overlay (Only in Camera Mode) */}
+        {!capturedImage && !cameraError && (
+            <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+                <div className="w-[85%] aspect-[3/4] max-w-sm rounded-2xl border-2 border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center">
+                     {/* Corners */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl -mt-0.5 -ml-0.5"></div>
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl -mt-0.5 -mr-0.5"></div>
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl -mb-0.5 -ml-0.5"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl -mb-0.5 -mr-0.5"></div>
+                    
+                    {!isProcessing && (
+                         <div className="flex flex-col items-center opacity-60">
+                            <span className="material-symbols-outlined text-6xl text-white mb-2">{activeDoc?.icon}</span>
+                            <p className="text-sm font-medium text-center px-8">Align document within frame</p>
+                        </div>
+                    )}
+                </div>
+                <div className="absolute bottom-36 left-0 right-0 text-center z-20 px-6">
+                    <p className="text-xs font-medium text-white/70 bg-black/40 inline-block px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                        Make sure text is readable and well-lit
+                    </p>
+                </div>
+            </div>
+        )}
       </div>
 
       {/* Bottom Controls */}
       <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 p-8 z-50">
         <div className="flex items-center justify-around max-w-md mx-auto">
-            <button 
-                onClick={() => simulateFileUpload('PDF')}
-                disabled={isProcessing}
-                className="flex flex-col items-center gap-2 opacity-80 hover:opacity-100 transition-opacity disabled:opacity-30"
-            >
-                <div className="size-12 rounded-full bg-white/10 flex items-center justify-center border border-white/5">
-                    <span className="material-symbols-outlined text-2xl">upload_file</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider">PDF</span>
-            </button>
+            
+            {capturedImage ? (
+                 /* Review Mode Actions */
+                 <div className="flex w-full gap-4">
+                     <button 
+                        onClick={retakePhoto}
+                        className="flex-1 py-4 bg-white/10 text-white rounded-xl font-bold border border-white/20 active:scale-95 transition-all"
+                     >
+                        Retake
+                     </button>
+                     <button 
+                        onClick={confirmPhoto}
+                        disabled={isProcessing}
+                        className="flex-1 py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                     >
+                        {isProcessing ? <span className="material-symbols-outlined animate-spin text-lg">sync</span> : <span className="material-symbols-outlined text-lg">check</span>}
+                        Use Photo
+                     </button>
+                 </div>
+            ) : (
+                /* Capture Mode Actions */
+                <>
+                    <button 
+                        onClick={() => simulateFileUpload('PDF')}
+                        disabled={isProcessing}
+                        className="flex flex-col items-center gap-2 opacity-80 hover:opacity-100 transition-opacity disabled:opacity-30"
+                    >
+                        <div className="size-12 rounded-full bg-white/10 flex items-center justify-center border border-white/5">
+                            <span className="material-symbols-outlined text-2xl">upload_file</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">PDF</span>
+                    </button>
 
-            <button 
-                onClick={() => simulateFileUpload('IMAGE')}
-                disabled={isProcessing}
-                className="size-20 rounded-full border-4 border-white flex items-center justify-center relative group active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
-            >
-                <div className="size-16 rounded-full bg-white group-hover:scale-90 transition-transform"></div>
-            </button>
+                    <button 
+                        onClick={takePhoto}
+                        disabled={isProcessing || !!cameraError}
+                        className="size-20 rounded-full border-4 border-white flex items-center justify-center relative group active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:border-white/20"
+                    >
+                        <div className="size-16 rounded-full bg-white group-hover:scale-90 transition-transform"></div>
+                    </button>
 
-            <button disabled className="flex flex-col items-center gap-2 opacity-50">
-                <div className="size-12 rounded-full bg-white/10 flex items-center justify-center border border-white/5">
-                    <span className="material-symbols-outlined text-2xl">flash_on</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider">Flash</span>
-            </button>
+                    <button disabled className="flex flex-col items-center gap-2 opacity-50">
+                        <div className="size-12 rounded-full bg-white/10 flex items-center justify-center border border-white/5">
+                            <span className="material-symbols-outlined text-2xl">flash_on</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Flash</span>
+                    </button>
+                </>
+            )}
         </div>
       </div>
     </div>

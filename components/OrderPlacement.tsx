@@ -12,6 +12,7 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
   const [scheduleType, setScheduleType] = useState<'NOW' | 'LATER'>('NOW');
   const [instructions, setInstructions] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 
   // Custom Calendar State
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -67,7 +68,12 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
           </div>
           <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">New Pickup Order</h2>
           <div className="flex w-10 items-center justify-end">
-            <button className="text-primary text-sm font-semibold">Cancel</button>
+            <button 
+                onClick={() => onNavigate(AppScreen.HOME)} 
+                className="text-primary text-sm font-semibold"
+            >
+                Cancel
+            </button>
           </div>
         </div>
       </div>
@@ -131,7 +137,10 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
                   placeholder="GA-000-0000" 
                   defaultValue="KB-221-8841" 
                 />
-                <button className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-white px-4 rounded-r-xl font-bold text-sm transition-colors border border-l-0 border-slate-300 dark:border-slate-600">
+                <button 
+                    onClick={() => alert("Simulating map view lookup...")}
+                    className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-white px-4 rounded-r-xl font-bold text-sm transition-colors border border-l-0 border-slate-300 dark:border-slate-600"
+                >
                   MAP
                 </button>
               </div>
@@ -337,21 +346,30 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
                 <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold mb-3">Pay with Mobile Money (via Flutterwave)</p>
                 <div className="grid grid-cols-3 gap-3">
                   {/* MTN MoMo */}
-                  <button className="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-primary bg-primary/5 transition-all">
+                  <button 
+                    onClick={() => setSelectedProvider('MTN')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${selectedProvider === 'MTN' ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-primary/10 bg-primary/5 hover:border-primary/50'}`}
+                  >
                     <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center mb-2 overflow-hidden shadow-sm">
                       <div className="font-black text-[10px] text-blue-900">MTN</div>
                     </div>
                     <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase">MoMo</p>
                   </button>
                   {/* Telecel */}
-                  <button className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:border-red-500 transition-all">
+                  <button 
+                    onClick={() => setSelectedProvider('TELECEL')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${selectedProvider === 'TELECEL' ? 'border-red-500 bg-red-50 ring-1 ring-red-500' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:border-red-500'}`}
+                  >
                     <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center mb-2 overflow-hidden shadow-sm">
                       <span className="text-white font-bold text-xs">T</span>
                     </div>
                     <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase">Telecel</p>
                   </button>
                   {/* AT Money */}
-                  <button className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 transition-all">
+                  <button 
+                    onClick={() => setSelectedProvider('AT')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${selectedProvider === 'AT' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400'}`}
+                  >
                     <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mb-2 overflow-hidden shadow-sm">
                       <span className="text-white font-bold text-xs uppercase">at</span>
                     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppScreen } from '../types';
 
 interface JobFeedProps {
@@ -7,6 +7,14 @@ interface JobFeedProps {
 }
 
 const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
+  // Bottom Sheet State
+  const [sheetHeight, setSheetHeight] = useState(400);
+  const isDragging = useRef(false);
+  const startY = useRef(0);
+  const startHeight = useRef(0);
+  
+  // Map Zoom State
+  const [mapScale, setMapScale] = useState(1);
   
   // Dynamic Configuration based on Category
   const getCategoryConfig = (cat: string | null | undefined) => {
@@ -76,6 +84,55 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
 
   const config = getCategoryConfig(category);
 
+  // --- Drag Logic ---
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    isDragging.current = true;
+    startY.current = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    startHeight.current = sheetHeight;
+  };
+
+  useEffect(() => {
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDragging.current) return;
+      const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+      const delta = startY.current - clientY;
+      const maxHeight = window.innerHeight * 0.9;
+      // Clamp height between 80px (header only) and 90% screen
+      const newHeight = Math.min(Math.max(startHeight.current + delta, 80), maxHeight);
+      setSheetHeight(newHeight);
+    };
+
+    const handleUp = () => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+      // Snap logic
+      setSheetHeight(prev => {
+         if (prev < 200) return 80; // Collapse
+         if (prev > window.innerHeight * 0.7) return window.innerHeight * 0.85; // Expand fully
+         return 400; // Default mid state
+      });
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    window.addEventListener('touchmove', handleMove);
+    window.addEventListener('touchend', handleUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleUp);
+    };
+  }, []);
+
+  const handleZoom = (direction: 'in' | 'out') => {
+    setMapScale(prev => {
+      const newScale = direction === 'in' ? prev + 0.2 : prev - 0.2;
+      return Math.max(1, Math.min(newScale, 3)); // Clamp between 1x and 3x
+    });
+  };
+
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-slate-50 text-slate-900 font-display">
       {/* Top App Bar (Header) */}
@@ -117,8 +174,14 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
       )}
 
       {/* Map Section */}
-      <div className="relative flex-1 w-full bg-slate-200">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${config.mapImage}")` }}></div>
+      <div className="relative flex-1 w-full bg-slate-200 overflow-hidden">
+        <div 
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-300 ease-out" 
+            style={{ 
+                backgroundImage: `url("${config.mapImage}")`,
+                transform: `scale(${mapScale})`
+            }}
+        ></div>
         <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-slate-50/90 pointer-events-none"></div>
 
         {/* Location Indicator (Center on Ghana) */}
@@ -132,14 +195,23 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
         {/* Map Controls */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
           <div className="flex flex-col gap-px overflow-hidden rounded-xl border border-slate-200 shadow-xl bg-white">
-            <button className="flex size-12 items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100">
+            <button 
+                onClick={() => handleZoom('in')}
+                className="flex size-12 items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+            >
               <span className="material-symbols-outlined">add</span>
             </button>
-            <button className="flex size-12 items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors">
+            <button 
+                onClick={() => handleZoom('out')}
+                className="flex size-12 items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors"
+            >
               <span className="material-symbols-outlined">remove</span>
             </button>
           </div>
-          <button className="flex size-12 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xl shadow-slate-900/20">
+          <button 
+            className="flex size-12 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xl shadow-slate-900/20 active:scale-95 transition-transform"
+            onClick={() => setMapScale(1)}
+          >
             <span className="material-symbols-outlined">my_location</span>
           </button>
         </div>
@@ -173,18 +245,26 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
          )}
       </div>
 
-      {/* Bottom Sheet (Job Feed) */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 flex flex-col bg-slate-50 border-t border-slate-200 rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-        {/* Bottom Sheet Handle */}
-        <button className="flex h-8 w-full items-center justify-center pt-2">
+      {/* Draggable Bottom Sheet (Job Feed) */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 z-30 flex flex-col bg-slate-50 border-t border-slate-200 rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-[height] duration-75 ease-out"
+        style={{ height: `${sheetHeight}px` }}
+      >
+        {/* Bottom Sheet Handle (Drag Area) */}
+        <div 
+          className="flex h-8 w-full items-center justify-center pt-2 cursor-grab active:cursor-grabbing touch-none"
+          onMouseDown={handleDragStart}
+          onTouchStart={handleDragStart}
+        >
           <div className="h-1.5 w-12 rounded-full bg-slate-300"></div>
-        </button>
-        <div className="px-6 pb-2">
+        </div>
+        
+        <div className="px-6 pb-2 shrink-0">
           <h3 className="text-slate-900 text-lg font-bold leading-tight tracking-tight">{category ? `${config.title} Requests` : 'Nearby Assignments'}</h3>
         </div>
 
         {/* Job Feed Cards Scrollable Area */}
-        <div className="max-h-[380px] overflow-y-auto px-4 pb-24 space-y-3 no-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-3 no-scrollbar">
           
           {/* Featured Job Card (Context Sensitive) */}
           {(category === 'STAT' || !category) && (
@@ -251,7 +331,10 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
                     <span className="font-semibold">Truck Required</span>
                 </div>
                 </div>
-                <button className="w-full bg-white border border-slate-200 text-slate-900 h-10 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-50">
+                <button 
+                    onClick={() => onNavigate(AppScreen.ORDER_TRACKING)}
+                    className="w-full bg-white border border-slate-200 text-slate-900 h-10 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-50"
+                >
                     View Details
                 </button>
             </div>
@@ -282,7 +365,10 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
                     <span className="font-semibold">Cooler Box</span>
                 </div>
                 </div>
-                 <button className="w-full bg-white border border-slate-200 text-slate-900 h-10 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-50">
+                 <button 
+                    onClick={() => onNavigate(AppScreen.ORDER_TRACKING)}
+                    className="w-full bg-white border border-slate-200 text-slate-900 h-10 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-50"
+                >
                     View Details
                 </button>
             </div>
@@ -313,7 +399,10 @@ const JobFeed: React.FC<JobFeedProps> = ({ onNavigate, category }) => {
                     <span className="font-semibold">Within 45m</span>
                 </div>
                 </div>
-                 <button className="w-full bg-white border border-slate-200 text-slate-900 h-10 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-50">
+                 <button 
+                    onClick={() => onNavigate(AppScreen.ORDER_TRACKING)}
+                    className="w-full bg-white border border-slate-200 text-slate-900 h-10 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-50"
+                 >
                     View Details
                 </button>
             </div>
