@@ -184,9 +184,9 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, onCategorySelect }) => {
                  </p>
                </div>
                <img 
-                 src="https://www.pngplay.com/wp-content/uploads/9/Medicine-Bike-Transparent-Free-PNG.png" 
-                 alt="Bike"
-                 className="absolute bottom-2 right-[-20px] w-48 drop-shadow-2xl transition-transform group-hover:scale-105"
+                 src="https://cdn-icons-png.flaticon.com/512/7541/7541893.png" 
+                 alt="Delivery Bike"
+                 className="absolute bottom-[-10px] right-[-10px] w-40 drop-shadow-2xl transition-transform group-hover:scale-105"
                />
             </div>
 

@@ -254,25 +254,41 @@ const OrderPlacement: React.FC<OrderPlacementProps> = ({ onNavigate }) => {
           <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Delivery Mode</h3>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { name: 'Drone', icon: 'helicopter', color: 'text-sky-500', sub: 'Emergency / Light' },
-              { name: 'Motorbike', icon: 'two_wheeler', color: 'text-primary', sub: 'Standard / Fast' },
-              { name: 'Car', icon: 'directions_car', color: 'text-indigo-500', sub: 'Secure / Medium' },
-              { name: 'Truck', icon: 'local_shipping', color: 'text-emerald-500', sub: 'Bulk / Heavy' },
-            ].map((item) => (
-              <div 
-                key={item.name}
-                onClick={() => setDeliveryMode(item.name)}
-                className={`flex flex-col gap-3 rounded-xl border p-4 items-start cursor-pointer transition-all ${deliveryMode === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary/20' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-primary'}`}
-              >
-                <div className={`${item.color} bg-white dark:bg-slate-900 p-2 rounded-lg shadow-sm`}>
-                  <span className="material-symbols-outlined material-symbols-filled">{item.icon}</span>
+              { name: 'Drone', icon: 'helicopter', color: 'bg-sky-500', text: 'text-sky-500', border: 'border-sky-500', bgLight: 'bg-sky-50', sub: 'Emergency / Light' },
+              { name: 'Motorbike', icon: 'two_wheeler', color: 'bg-blue-600', text: 'text-blue-600', border: 'border-blue-600', bgLight: 'bg-blue-50', sub: 'Standard / Fast' },
+              { name: 'Car', icon: 'directions_car', color: 'bg-indigo-500', text: 'text-indigo-500', border: 'border-indigo-500', bgLight: 'bg-indigo-50', sub: 'Secure / Medium' },
+              { name: 'Truck', icon: 'local_shipping', color: 'bg-emerald-500', text: 'text-emerald-500', border: 'border-emerald-500', bgLight: 'bg-emerald-50', sub: 'Bulk / Heavy' },
+            ].map((item) => {
+              const isSelected = deliveryMode === item.name;
+              return (
+                <div 
+                  key={item.name}
+                  onClick={() => setDeliveryMode(item.name)}
+                  className={`relative overflow-hidden flex flex-col gap-3 rounded-xl border p-4 items-start cursor-pointer transition-all duration-300 ${isSelected ? `${item.border} ${item.bgLight} ring-1 ring-offset-0 ring-[currentColor] shadow-lg scale-[1.02]` : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400'}`}
+                  style={isSelected ? { borderColor: 'var(--tw-ring-color)' } : {}}
+                >
+                  {/* Active Indicator Background Blob */}
+                  {isSelected && <div className={`absolute top-0 right-0 w-16 h-16 ${item.color} opacity-10 rounded-bl-full -mr-4 -mt-4`}></div>}
+                  
+                  <div className={`z-10 p-2.5 rounded-xl transition-all duration-300 ${isSelected ? `${item.color} text-white shadow-md scale-110` : 'bg-slate-100 dark:bg-slate-900 text-slate-500'}`}>
+                    <span className={`material-symbols-outlined text-2xl ${isSelected ? 'material-symbols-filled' : ''}`}>
+                      {item.icon}
+                    </span>
+                  </div>
+                  <div className="z-10">
+                    <h2 className={`text-base font-bold leading-tight transition-colors ${isSelected ? item.text : 'text-slate-900 dark:text-white'}`}>{item.name}</h2>
+                    <p className={`text-xs mt-1 font-medium transition-colors ${isSelected ? item.text : 'text-slate-500 dark:text-slate-400'} opacity-80`}>{item.sub}</p>
+                  </div>
+                  
+                  {/* Selection Checkmark */}
+                  {isSelected && (
+                    <div className={`absolute top-3 right-3 ${item.text} animate-in zoom-in duration-300`}>
+                      <span className="material-symbols-outlined text-xl material-symbols-filled">check_circle</span>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <h2 className="text-slate-900 dark:text-white text-base font-bold leading-tight">{item.name}</h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{item.sub}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
