@@ -48,6 +48,7 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.HOME);
   const [showNotification, setShowNotification] = useState(false);
   const [isEmergency, setIsEmergency] = useState(true);
+  const [selectedFeedCategory, setSelectedFeedCategory] = useState<string | null>(null);
 
   // Simulate Push Notification Logic
   useEffect(() => {
@@ -63,12 +64,17 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
     return () => clearTimeout(timer);
   }, [currentScreen]);
 
+  const handleCategorySelect = (category: string) => {
+    setSelectedFeedCategory(category);
+    setCurrentScreen(AppScreen.MISSIONS);
+  };
+
   const renderScreen = () => {
     switch (currentScreen) {
       case AppScreen.HOME:
-        return <Home onNavigate={setCurrentScreen} user={user} />;
+        return <Home onNavigate={setCurrentScreen} user={user} onCategorySelect={handleCategorySelect} />;
       case AppScreen.MISSIONS:
-        return <JobFeed onNavigate={setCurrentScreen} />;
+        return <JobFeed onNavigate={setCurrentScreen} category={selectedFeedCategory} />;
       case AppScreen.CUSTODY:
         return <DeliveryProof onNavigate={setCurrentScreen} />;
       case AppScreen.WALLET:
@@ -78,7 +84,7 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
       case AppScreen.KYC_VERIFICATION:
         return <KYCVerification onNavigate={setCurrentScreen} />;
       default:
-        return <Home onNavigate={setCurrentScreen} user={user} />;
+        return <Home onNavigate={setCurrentScreen} user={user} onCategorySelect={handleCategorySelect} />;
     }
   };
 
@@ -133,17 +139,17 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
       </div>
 
       {/* Courier Bottom Navigation: Home, Missions, Custody, Wallet, Profile */}
-      <div className="sticky bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe mx-auto max-w-md">
         <div className="flex justify-between items-center px-1 py-2">
           <NavButton 
             active={currentScreen === AppScreen.HOME} 
-            onClick={() => setCurrentScreen(AppScreen.HOME)} 
+            onClick={() => { setCurrentScreen(AppScreen.HOME); setSelectedFeedCategory(null); }} 
             icon="home" 
             label="Home"
           />
           <NavButton 
             active={currentScreen === AppScreen.MISSIONS} 
-            onClick={() => setCurrentScreen(AppScreen.MISSIONS)} 
+            onClick={() => { setCurrentScreen(AppScreen.MISSIONS); setSelectedFeedCategory(null); }} 
             icon="list_alt" 
             label="Missions" 
           />
@@ -220,7 +226,7 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
       </div>
 
       {/* Hospital Bottom Navigation */}
-      <div className="sticky bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe mx-auto max-w-md">
         <div className="flex justify-around items-center px-4 py-2">
           <NavButton 
             active={location.pathname === '/home'} 

@@ -4,10 +4,19 @@ import { AppScreen, User } from '../types';
 interface HomeProps {
   onNavigate: (screen: AppScreen) => void;
   user: User;
+  onCategorySelect?: (category: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
+const Home: React.FC<HomeProps> = ({ onNavigate, user, onCategorySelect }) => {
   const isCourier = user.role === 'COURIER';
+
+  const handleCardClick = (category: string) => {
+    if (isCourier && onCategorySelect) {
+      onCategorySelect(category);
+    } else {
+      onNavigate(isCourier ? AppScreen.MISSIONS : AppScreen.ORDER_PLACEMENT);
+    }
+  };
 
   return (
     <div className="bg-white min-h-screen pb-32 font-display text-slate-900">
@@ -115,9 +124,14 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
           <div className="space-y-4">
             {/* 1. Full Width Featured: Emergency STAT (Matches BRT/EV) */}
             <div 
-              onClick={() => onNavigate(isCourier ? AppScreen.MISSIONS : AppScreen.ORDER_PLACEMENT)}
+              onClick={() => handleCardClick('STAT')}
               className="bg-brand-green h-40 rounded-[2rem] p-6 relative overflow-hidden shadow-card group cursor-pointer active:scale-[0.98] transition-transform"
             >
+               {/* Available Job Count Badge - Bottom Left */}
+               <div className="absolute bottom-4 left-4 bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 shadow-sm z-20">
+                  <span className="text-[10px] font-black text-white uppercase tracking-wider">3 Active</span>
+               </div>
+
                <div className="relative z-10 w-2/3">
                  <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
                    STAT / Emergency <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -134,8 +148,16 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
             </div>
 
             {/* 2. The Oxygen Line (Smart Refill) - New Feature */}
-            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 h-32 rounded-[2rem] border border-blue-100 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform flex items-center justify-between">
-                <div className="relative z-10">
+            <div 
+                onClick={() => handleCardClick('OXYGEN')}
+                className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 h-32 rounded-[2rem] border border-blue-100 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform flex items-center justify-between"
+            >
+                {/* Job Count - Top Right (Exception) */}
+                <div className="absolute top-4 right-4 bg-blue-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm z-20">
+                   1 Request
+                </div>
+
+                <div className="relative z-10 mt-2">
                    <div className="flex items-center gap-2 mb-1">
                       <span className="material-symbols-outlined text-blue-500">air</span>
                       <span className="text-xs font-black uppercase text-blue-500 tracking-widest">Smart Refill</span>
@@ -156,7 +178,9 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                  desc="Track & book plasma"
                  icon="bloodtype"
                  image="https://cdn-icons-png.flaticon.com/512/4006/4006197.png" 
-                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+                 count={4}
+                 countLabel="Units"
+                 onClick={() => handleCardClick('BLOOD')}
                />
                <ServiceCard 
                  bg="bg-brand-mint"
@@ -164,13 +188,18 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                  desc="Vaccine monitoring"
                  icon="ac_unit"
                  image="https://cdn-icons-png.flaticon.com/512/2830/2830305.png" 
-                 onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)}
+                 count={2}
+                 countLabel="Jobs"
+                 onClick={() => handleCardClick('COLD_CHAIN')}
                />
             </div>
 
             {/* 4. Grid Row: Grey & Yellow */}
             <div className="grid grid-cols-2 gap-4">
-               <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-grey p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+               <div onClick={() => handleCardClick('LAB')} className="bg-brand-grey p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+                  <div className="absolute bottom-4 left-4 bg-white/60 backdrop-blur-sm px-2 py-0.5 rounded-md text-[9px] font-bold text-slate-600 border border-slate-200 z-20">
+                    7 Batches
+                  </div>
                   <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
                     Lab Logistics <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </h3>
@@ -178,7 +207,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
                   <img src="https://cdn-icons-png.flaticon.com/512/3209/3209072.png" className="absolute bottom-4 right-[-10px] w-24 drop-shadow-xl" alt="Lab" />
                </div>
 
-               <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-yellow p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+               <div onClick={() => handleCardClick('AMBULANCE')} className="bg-brand-yellow p-5 h-44 rounded-[2rem] relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+                  <div className="absolute bottom-4 left-4 bg-white/60 backdrop-blur-sm px-2 py-0.5 rounded-md text-[9px] font-bold text-amber-600 border border-amber-100 z-20">
+                    2 Calls
+                  </div>
                   <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
                     Ambulance <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </h3>
@@ -188,7 +220,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
             </div>
 
             {/* 5. Last Item: Insurance */}
-            <div onClick={() => onNavigate(AppScreen.ORDER_PLACEMENT)} className="bg-brand-orange p-5 h-32 rounded-[2rem] relative overflow-hidden flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform mb-4">
+            <div onClick={() => handleCardClick('INSURANCE')} className="bg-brand-orange p-5 h-32 rounded-[2rem] relative overflow-hidden flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform mb-4">
                <div className="relative z-10">
                  <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
                    Insurance <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -213,14 +245,21 @@ interface ServiceCardProps {
   desc: string;
   image: string;
   icon?: string;
+  count?: number;
+  countLabel?: string;
   onClick: () => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ bg, title, desc, image, icon, onClick }) => (
+const ServiceCard: React.FC<ServiceCardProps> = ({ bg, title, desc, image, icon, count, countLabel, onClick }) => (
   <button 
     onClick={onClick}
     className={`${bg} p-5 h-44 rounded-[2rem] relative overflow-hidden flex flex-col justify-start text-left shadow-card active:scale-[0.98] transition-transform`}
   >
+    {count !== undefined && (
+      <div className="absolute bottom-4 left-4 bg-white/50 backdrop-blur-sm px-2 py-0.5 rounded-md text-[9px] font-bold text-slate-800 border border-white/20 shadow-sm z-20">
+         {count} {countLabel || 'Jobs'}
+      </div>
+    )}
     <div className="z-10 relative">
       <h3 className="text-slate-900 font-bold text-base leading-tight flex items-center gap-1">
         {title} <span className="material-symbols-outlined text-sm">arrow_forward</span>
