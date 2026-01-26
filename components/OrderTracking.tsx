@@ -19,7 +19,8 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
 
   // Sheet State
   const [sheetHeight, setSheetHeight] = useState(window.innerHeight * 0.55);
-  const isSheetDragging = useRef(false);
+  const [isDraggingSheet, setIsDraggingSheet] = useState(false);
+  const isSheetDraggingRef = useRef(false);
   const sheetDragStartY = useRef(0);
   const sheetStartHeight = useRef(0);
   
@@ -47,14 +48,15 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
 
   // Sheet Drag Logic
   const handleSheetDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    isSheetDragging.current = true;
+    isSheetDraggingRef.current = true;
+    setIsDraggingSheet(true);
     sheetDragStartY.current = 'touches' in e ? e.touches[0].clientY : e.clientY;
     sheetStartHeight.current = sheetHeight;
   };
 
   useEffect(() => {
     const handleDragMove = (e: MouseEvent | TouchEvent) => {
-      if (!isSheetDragging.current) return;
+      if (!isSheetDraggingRef.current) return;
       const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
       const delta = sheetDragStartY.current - clientY;
       // Clamp between 150px (min) and 90% of screen (max)
@@ -63,7 +65,9 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
     };
 
     const handleDragEnd = () => {
-      isSheetDragging.current = false;
+      if (!isSheetDraggingRef.current) return;
+      isSheetDraggingRef.current = false;
+      setIsDraggingSheet(false);
     };
 
     window.addEventListener('mousemove', handleDragMove);
@@ -271,7 +275,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ onNavigate }) => {
 
       {/* Draggable Integrity Shield Bottom Sheet */}
       <section 
-        className="absolute bottom-0 left-0 right-0 z-40 bg-background-light dark:bg-background-dark rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] flex flex-col transition-[height] duration-75 ease-out"
+        className={`absolute bottom-0 left-0 right-0 z-40 bg-background-light dark:bg-background-dark rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] flex flex-col ${isDraggingSheet ? '' : 'transition-[height] duration-300 ease-out'}`}
         style={{ height: `${sheetHeight}px` }}
       >
           {/* Drag Handle */}
