@@ -16,6 +16,7 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser, onLog
     ? "https://i.pravatar.cc/300?img=11" // Marcus
     : "https://i.pravatar.cc/300?img=5"; // Sarah
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -37,7 +38,7 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser, onLog
       <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
         <h1 className="text-lg font-bold">My Profile</h1>
         <button 
-          onClick={() => showToast('Settings coming soon')}
+          onClick={() => onNavigate(AppScreen.PERSONAL_INFO)}
           className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300"
         >
           <span className="material-symbols-outlined">settings</span>
@@ -49,7 +50,7 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser, onLog
         <div className="flex flex-col items-center mb-8 relative">
           <div className="absolute top-0 w-full h-32 bg-gradient-to-b from-primary/10 to-transparent -z-10 blur-3xl opacity-50"></div>
           
-          <div className="relative group cursor-pointer" onClick={() => showToast('Edit photo feature coming soon')}>
+          <div className="relative group cursor-pointer" onClick={() => onNavigate(AppScreen.PERSONAL_INFO)}>
             <div className={`w-28 h-28 rounded-full p-1 bg-gradient-to-tr ${isCourier ? 'from-primary to-blue-400' : 'from-emerald-500 to-teal-400'}`}>
               <img 
                 src={avatarUrl}
@@ -66,32 +67,36 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser, onLog
           <h2 className="text-2xl font-bold mt-4 tracking-tight">{user.name}</h2>
           
           {/* Tiered Badges Display */}
-          <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
-             {/* Blue: KYC Verified */}
-             {user.isVerified && (
-               <div className="px-2 py-0.5 rounded-full flex items-center gap-1 border bg-blue-50 border-blue-200 text-blue-600">
-                  <span className="material-symbols-outlined text-[14px] material-symbols-filled">verified</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wide">Verified</span>
+          <div className="flex items-center gap-2 mt-3 flex-wrap justify-center max-w-xs">
+             {/* Blue Check: KYC Verified */}
+             {(user.isVerified || user.badges?.includes('KYC')) && (
+               <div className="px-2.5 py-1 rounded-full flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm">
+                  <span className="material-symbols-outlined text-[16px] material-symbols-filled">verified</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wide">KYC Verified</span>
                </div>
              )}
              
-             {/* Green: FDA / Biohazard Certified (Courier) */}
+             {/* Green Check: FDA/HeFRA Transport Certified */}
              {user.badges?.includes('FDA_CERTIFIED') && (
-               <div className="px-2 py-0.5 rounded-full flex items-center gap-1 border bg-emerald-50 border-emerald-200 text-emerald-600">
-                  <span className="material-symbols-outlined text-[14px] material-symbols-filled">medical_services</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wide">FDA Certified</span>
+               <div className="px-2.5 py-1 rounded-full flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+                  <span className="material-symbols-outlined text-[16px] material-symbols-filled">health_and_safety</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wide">FDA/HeFRA Certified</span>
                </div>
              )}
 
-             {/* Gold: Trusted Partner (Hospital) */}
+             {/* Gold Check: Trusted Hospital Partner */}
              {user.badges?.includes('TRUSTED_PARTNER') && (
-               <div className="px-2 py-0.5 rounded-full flex items-center gap-1 border bg-amber-50 border-amber-200 text-amber-600">
-                  <span className="material-symbols-outlined text-[14px] material-symbols-filled">stars</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wide">Gold Partner</span>
+               <div className="px-2.5 py-1 rounded-full flex items-center gap-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-sm">
+                  <span className="material-symbols-outlined text-[16px] material-symbols-filled">workspace_premium</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wide">High-Trust Partner</span>
                </div>
              )}
-
-             <span className="text-slate-400 text-xs font-semibold ml-1">ID: #{isCourier ? '8821' : 'H-402'}</span>
+             
+             <div className="w-full flex justify-center mt-1">
+                 <span className="text-slate-400 text-[10px] font-bold font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                     ID: #{isCourier ? '8821' : 'H-402'}
+                 </span>
+             </div>
           </div>
         </div>
 
@@ -116,42 +121,33 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, user, onSwitchUser, onLog
         <div className="space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Account</h3>
           <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-             {isCourier ? (
-               <>
-                 <MenuItem icon="person" label="Personal Information" onClick={() => showToast('Personal Info coming soon')} />
-                 <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="history" label="Delivery History" onClick={() => onNavigate(AppScreen.MISSIONS)} />
-                 <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="account_balance_wallet" label="Earnings & Payouts" badge="GHS 420.00" onClick={() => onNavigate(AppScreen.WALLET)} />
-                 <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem 
-                   icon="verified_user" 
-                   label="Certifications & KYC" 
-                   onClick={() => onNavigate(AppScreen.KYC_VERIFICATION)}
-                   badge="Action Required"
-                   badgeColor="text-warning bg-warning/10 border-warning/20"
-                 />
-               </>
-             ) : (
-               <>
-                 <MenuItem icon="domain" label="Organization Details" onClick={() => showToast('Org Details coming soon')} />
-                 <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="history" label="Order History" onClick={() => onNavigate(AppScreen.ORDER_TRACKING)} />
-                 <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="receipt_long" label="Billing & Invoices" badge="Due: GHS 1.2k" onClick={() => onNavigate(AppScreen.WALLET)} />
-                 <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-                 <MenuItem icon="policy" label="Compliance Docs" onClick={() => onNavigate(AppScreen.KYC_VERIFICATION)} />
-               </>
-             )}
+             <MenuItem icon="person" label="Personal Information" onClick={() => onNavigate(AppScreen.PERSONAL_INFO)} />
+             <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
+             
+             <MenuItem icon="history" label="Delivery History" onClick={() => onNavigate(AppScreen.DELIVERY_HISTORY)} />
+             <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
+             
+             <MenuItem icon="account_balance_wallet" label="Earnings & Payouts" badge="GHS 420.00" onClick={() => onNavigate(AppScreen.WALLET)} />
+             <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
+             
+             <MenuItem 
+               icon="verified_user" 
+               label="Certifications & KYC" 
+               onClick={() => onNavigate(AppScreen.KYC_VERIFICATION)}
+               badge={user.isVerified ? "Verified" : "Action Required"}
+               badgeColor={user.isVerified ? "text-blue-600 bg-blue-100 border-blue-200" : "text-warning bg-warning/10 border-warning/20"}
+             />
           </div>
 
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1 mt-6">Preferences</h3>
           <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-             <MenuItem icon="notifications" label="Notifications" onClick={() => showToast('Notification settings coming soon')} />
+             <MenuItem icon="notifications" label="Notifications" onClick={() => onNavigate(AppScreen.NOTIFICATIONS)} />
              <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-             <MenuItem icon="security" label="Security & Privacy" onClick={() => showToast('Security settings coming soon')} />
+             
+             <MenuItem icon="security" label="Security & Privacy" onClick={() => onNavigate(AppScreen.SECURITY)} />
              <div className="h-px bg-slate-100 dark:bg-slate-700 mx-4"></div>
-             <MenuItem icon="help" label="Help & Support" onClick={() => showToast('Support coming soon')} />
+             
+             <MenuItem icon="help" label="Help & Support" onClick={() => onNavigate(AppScreen.HELP)} />
           </div>
 
            {/* Switch User Button */}

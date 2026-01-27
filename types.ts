@@ -8,6 +8,13 @@ export enum AppScreen {
   ORDER_TRACKING = 'ORDER_TRACKING',
   PROFILE = 'PROFILE',
   WALLET = 'WALLET',
+  
+  // Profile Sub-screens
+  PERSONAL_INFO = 'PERSONAL_INFO',
+  DELIVERY_HISTORY = 'DELIVERY_HISTORY',
+  NOTIFICATIONS = 'NOTIFICATIONS',
+  SECURITY = 'SECURITY',
+  HELP = 'HELP',
 }
 
 export interface Job {

@@ -13,12 +13,23 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
   // Courier Wallet State
   const [showBalance, setShowBalance] = useState(true);
   const [autoSweep, setAutoSweep] = useState(true);
+  const [showCashOut, setShowCashOut] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Hospital Wallet State
   const [topUpAmount, setTopUpAmount] = useState('');
 
-  const handleCashOut = () => {
-    alert("Processing cash out of GHS 420.50 to linked Mobile Money wallet (024...8821).");
+  const handleCashOutClick = () => {
+    setShowCashOut(true);
+  };
+
+  const confirmCashOut = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+        setIsProcessing(false);
+        setShowCashOut(false);
+        alert("Cash out successful! GHS 420.50 sent to 024...8821");
+    }, 2000);
   };
 
   const handleTopUp = (provider: string) => {
@@ -30,7 +41,7 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
   // --- COURIER (BIKER) WALLET UI ---
   if (isCourier) {
     return (
-      <div className="bg-slate-50 min-h-screen text-slate-900 font-display pb-24 flex flex-col">
+      <div className="bg-slate-50 min-h-screen text-slate-900 font-display pb-24 flex flex-col relative">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-4 flex justify-between items-center shadow-sm">
           <div>
@@ -84,7 +95,7 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
               </div>
               
               <button 
-                onClick={handleCashOut}
+                onClick={handleCashOutClick}
                 className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
               >
                 <span className="material-symbols-outlined text-primary">payments</span>
@@ -137,6 +148,62 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
              ))}
           </div>
         </main>
+
+        {/* Cash Out Bottom Sheet */}
+        {showCashOut && (
+          <>
+            <div className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isProcessing && setShowCashOut(false)}></div>
+            <div className="fixed bottom-0 left-0 right-0 z-[70] bg-white rounded-t-3xl shadow-2xl max-w-md mx-auto animate-in slide-in-from-bottom duration-300">
+               <div className="flex justify-center pt-3 pb-2">
+                 <div className="w-12 h-1.5 bg-slate-300 rounded-full"></div>
+               </div>
+               
+               <div className="px-6 pb-8">
+                  <h3 className="text-xl font-bold text-slate-900 text-center mb-6">Withdraw Earnings</h3>
+                  
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-6 flex flex-col items-center">
+                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Balance</p>
+                     <h2 className="text-4xl font-black text-slate-900">GHS 420.50</h2>
+                  </div>
+
+                  <div className="space-y-4 mb-8">
+                     <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-[10px] text-slate-900">MTN</div>
+                           <div>
+                              <p className="text-sm font-bold text-slate-900">Mobile Money</p>
+                              <p className="text-xs text-slate-500">024 ••• 8821</p>
+                           </div>
+                        </div>
+                        <span className="material-symbols-outlined text-slate-400">check_circle</span>
+                     </div>
+                     
+                     <div className="flex justify-between items-center text-sm px-1">
+                        <span className="text-slate-500">Withdrawal Fee (1%)</span>
+                        <span className="font-bold text-slate-900">GHS 4.20</span>
+                     </div>
+                     <div className="flex justify-between items-center text-sm px-1">
+                        <span className="text-slate-500">You Receive</span>
+                        <span className="font-bold text-green-600">GHS 416.30</span>
+                     </div>
+                  </div>
+
+                  <button 
+                    onClick={confirmCashOut}
+                    disabled={isProcessing}
+                    className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                       <span className="material-symbols-outlined animate-spin">sync</span>
+                    ) : (
+                       <span className="material-symbols-outlined">payments</span>
+                    )}
+                    {isProcessing ? 'Processing...' : 'Confirm Withdrawal'}
+                  </button>
+               </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -208,7 +275,9 @@ const Wallet: React.FC<WalletProps> = ({ onNavigate, user }) => {
              </>
            ) : (
              <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl flex items-start gap-3">
-               <span className="material-symbols-outlined text-amber-500">lock</span>
+               <div className="shrink-0 pt-0.5">
+                   <span className="material-symbols-outlined text-amber-500">lock</span>
+               </div>
                <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">Restricted Access</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Wallet management and top-ups are restricted to Hospital Administrators. Please contact your admin for budget increases.</p>

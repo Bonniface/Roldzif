@@ -258,12 +258,34 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onNavigate }) => {
                     </button>
                 </div>
             </div>
+            
+            {/* Badge Status Card */}
+            <div className="mx-4 mt-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20 relative overflow-hidden">
+                <div className="relative z-10 flex items-center gap-4">
+                    <div className="size-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shrink-0">
+                        <span className="material-symbols-outlined text-3xl material-symbols-filled">verified</span>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold leading-tight">Blue Badge Status</h3>
+                        <p className="text-xs text-blue-100 font-medium mt-1 leading-snug">
+                            {progress === 100 
+                              ? 'Verification Complete. Badge Active.' 
+                              : 'Complete all steps to earn your KYC badge.'}
+                        </p>
+                    </div>
+                </div>
+                {/* Decor */}
+                <div className="absolute -right-6 -bottom-6 size-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div className="absolute top-0 right-0 p-3 opacity-30">
+                    <span className="material-symbols-outlined text-6xl">security</span>
+                </div>
+            </div>
 
             {/* Progress Section */}
-            <div className="px-6 py-6 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+            <div className="px-6 py-6 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex justify-between items-end mb-3">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Required Documents</h1>
+                        <h1 className="text-xl font-bold tracking-tight">Required Documents</h1>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Upload certificates for Ghana regulations.</p>
                     </div>
                     <div className="text-right">

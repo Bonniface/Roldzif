@@ -1,5 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, VehicleType } from '../types';
+import { initializeApp } from 'firebase/app';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { getAnalytics } from 'firebase/analytics';
+
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const analytics = getAnalytics(app);
+auth.useDeviceLanguage();
+
+// Declare window interface for recaptcha
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+  }
+}
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -10,46 +37,128 @@ type AuthStep = 'LANDING' | 'PHONE_INPUT' | 'OTP_VERIFY' | 'ROLE_SELECT' | 'VEHI
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [step, setStep] = useState<AuthStep>('LANDING');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '']);
-  const [isLoginMode, setIsLoginMode] = useState(true); // true = Login, false = Signup
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Firebase State
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  // Initialize Recaptcha when entering PHONE_INPUT step
+  useEffect(() => {
+    if (step === 'PHONE_INPUT') {
+      // Clear existing verifier if any
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
+      }
+
+      try {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': () => {
+            console.log("Recaptcha verified");
+          },
+          'expired-callback': () => {
+             setError('reCAPTCHA expired. Please try again.');
+             setIsLoading(false);
+          }
+        });
+      } catch (err) {
+        console.error("Recaptcha Init Error", err);
+      }
+    }
+  }, [step]);
+
 
   // --- Handlers ---
 
-  const handleSendOtp = () => {
-    if (phoneNumber.length < 9) return;
+  const handleSendOtp = async () => {
+    if (phoneNumber.length < 9) {
+      setError("Please enter a valid phone number");
+      return;
+    }
+    setError(null);
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+
+    const formattedNumber = `+233${phoneNumber.trim()}`; // Hardcoded Ghana code for this demo
+
+    try {
+      if (!window.recaptchaVerifier) {
+          // Attempt to re-init if lost
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+      }
+      
+      const appVerifier = window.recaptchaVerifier;
+      const result = await signInWithPhoneNumber(auth, formattedNumber, appVerifier);
+      setConfirmationResult(result);
       setIsLoading(false);
       setStep('OTP_VERIFY');
-    }, 1500);
+    } catch (err: any) {
+      console.error("SMS Error:", err);
+      setIsLoading(false);
+      
+      if (err.code === 'auth/invalid-api-key') {
+         setError("Configuration Error: Invalid Firebase API Key.");
+      } else if (err.code === 'auth/quota-exceeded') {
+         setError("SMS Quota Exceeded.");
+      } else if (err.code === 'auth/invalid-phone-number') {
+         setError("Invalid Phone Number format.");
+      } else {
+         setError(err.message || "Failed to send SMS. Check console.");
+      }
+
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; } catch(e) {}
+      }
+    }
   };
 
-  const handleVerifyOtp = () => {
-    // Check if OTP is "1234" (Mock)
+  const handleVerifyOtp = async () => {
     const enteredOtp = otp.join('');
-    if (enteredOtp.length !== 4) return;
-
+    if (enteredOtp.length !== 6) {
+        setError("Please enter the 6-digit code.");
+        return;
+    }
+    setError(null);
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      if (!confirmationResult) throw new Error("No verification session found.");
+      
+      const result = await confirmationResult.confirm(enteredOtp);
+      console.log("Firebase Auth Success:", result.user);
+
       setIsLoading(false);
+      
       if (isLoginMode) {
-        // Mock Login: Assign a default existing user based on random chance or hardcode
+        // In a real app, you would fetch user profile here.
         onLogin({
-          name: 'Marcus Thompson',
-          role: 'COURIER', // Default to Courier for existing user login demo
+          name: 'Marcus Thompson', 
+          role: 'COURIER', 
           isVerified: true,
           phone: phoneNumber,
-          vehicle: 'MOTORBIKE'
+          vehicle: 'MOTORBIKE',
+          badges: ['KYC', 'FDA_CERTIFIED']
         });
       } else {
-        // Signup Flow
         setStep('ROLE_SELECT');
       }
-    }, 1500);
+
+    } catch (err: any) {
+      setIsLoading(false);
+      console.error("OTP Error:", err);
+      if (err.code === 'auth/invalid-verification-code') {
+        setError("Invalid code. Please check and try again.");
+      } else {
+        setError("Verification failed. Please try again.");
+      }
+    }
   };
 
   const handleRoleSelect = (role: UserRole) => {
@@ -57,7 +166,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     if (role === 'COURIER') {
       setTimeout(() => setStep('VEHICLE_SELECT'), 300);
     } else {
-      // Complete Signup for Hospital Staff
       finishSignup(role, undefined);
     }
   };
@@ -69,11 +177,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
   const finishSignup = (role: UserRole, vehicle?: VehicleType) => {
     setIsLoading(true);
+    // In a real app, post to backend here
     setTimeout(() => {
       onLogin({
         name: 'New User',
         role: role,
-        isVerified: false, // New users might need KYC
+        isVerified: false,
         phone: phoneNumber,
         vehicle: vehicle
       });
@@ -87,7 +196,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setOtp(newOtp);
     
     // Auto focus next
-    if (value && index < 3) {
+    if (value && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
     }
@@ -151,7 +260,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         <h2 className="text-2xl font-bold text-slate-900 mb-2">{isLoginMode ? 'Welcome Back!' : 'Get Started'}</h2>
         <p className="text-slate-500 mb-8">Enter your mobile number to continue.</p>
 
-        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-1 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all mb-6">
+        {/* Recaptcha Container (Invisible) */}
+        <div id="recaptcha-container"></div>
+
+        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-1 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all mb-4">
           <div className="flex items-center gap-2 border-r border-slate-200 pr-3 py-3">
              <img src="https://flagcdn.com/w40/gh.png" alt="Ghana" className="w-6 rounded-sm" />
              <span className="font-bold text-slate-700">+233</span>
@@ -164,6 +276,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
         </div>
+        
+        {error && (
+            <div className="mb-6 p-3 bg-red-50 text-red-500 text-sm font-bold rounded-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">error</span>
+                {error}
+            </div>
+        )}
 
         <button 
           onClick={handleSendOtp}
@@ -172,11 +291,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         >
           {isLoading ? <span className="material-symbols-outlined animate-spin">sync</span> : 'Send Verification Code'}
         </button>
+        
+        <p className="text-center mt-4 text-xs text-slate-400">
+            Securely powered by Firebase Authentication.
+        </p>
       </div>
     );
   }
 
   if (step === 'OTP_VERIFY') {
+    if (otp.length === 4) setOtp(['', '', '', '', '', '']);
+
     return (
       <div className="min-h-screen bg-white font-display p-6 flex flex-col">
         <button onClick={() => setStep('PHONE_INPUT')} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-8 hover:bg-slate-100">
@@ -184,9 +309,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         </button>
 
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Verify Phone</h2>
-        <p className="text-slate-500 mb-8">We sent a code to <span className="font-bold text-slate-900">+233 {phoneNumber}</span></p>
+        <p className="text-slate-500 mb-8">We sent a 6-digit code to <span className="font-bold text-slate-900">+233 {phoneNumber}</span></p>
 
-        <div className="flex justify-between gap-4 mb-8">
+        <div className="flex justify-between gap-2 mb-6">
           {otp.map((digit, idx) => (
             <input
               key={idx}
@@ -195,20 +320,27 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               maxLength={1}
               value={digit}
               onChange={(e) => handleOtpChange(idx, e.target.value)}
-              className="w-full h-16 rounded-2xl border-2 border-slate-200 text-center text-3xl font-black text-slate-900 focus:border-primary focus:ring-0 focus:outline-none transition-all"
+              className="w-full h-14 rounded-xl border-2 border-slate-200 text-center text-2xl font-black text-slate-900 focus:border-primary focus:ring-0 focus:outline-none transition-all"
             />
           ))}
         </div>
 
+        {error && (
+            <div className="mb-6 p-3 bg-red-50 text-red-500 text-sm font-bold rounded-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">error</span>
+                {error}
+            </div>
+        )}
+
         <button 
           onClick={handleVerifyOtp}
-          disabled={otp.join('').length !== 4 || isLoading}
+          disabled={otp.join('').length !== 6 || isLoading}
           className="w-full bg-primary disabled:bg-slate-200 disabled:text-slate-400 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
         >
           {isLoading ? <span className="material-symbols-outlined animate-spin">sync</span> : 'Verify & Continue'}
         </button>
         
-        <p className="text-center mt-6 text-sm font-bold text-slate-400">Didn't receive code? <span className="text-primary cursor-pointer">Resend</span></p>
+        <p className="text-center mt-6 text-sm font-bold text-slate-400">Didn't receive code? <span className="text-primary cursor-pointer" onClick={() => { setStep('PHONE_INPUT'); handleSendOtp(); }}>Resend</span></p>
       </div>
     );
   }

@@ -12,6 +12,13 @@ import Wallet from './components/Wallet';
 import Onboarding from './components/Onboarding';
 import Auth from './components/Auth';
 
+// New Profile Sub-pages
+import PersonalInformation from './components/PersonalInformation';
+import DeliveryHistory from './components/DeliveryHistory';
+import NotificationsSettings from './components/NotificationsSettings';
+import SecurityPrivacy from './components/SecurityPrivacy';
+import HelpSupport from './components/HelpSupport';
+
 // --- Emergency Header Component ---
 const EmergencyHeader: React.FC = () => {
   return (
@@ -85,6 +92,17 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
         return <KYCVerification onNavigate={setCurrentScreen} />;
       case AppScreen.ORDER_TRACKING:
         return <OrderTracking onNavigate={setCurrentScreen} />;
+      // New Profile Sub-screens
+      case AppScreen.PERSONAL_INFO:
+        return <PersonalInformation onNavigate={setCurrentScreen} user={user} />;
+      case AppScreen.DELIVERY_HISTORY:
+        return <DeliveryHistory onNavigate={setCurrentScreen} />;
+      case AppScreen.NOTIFICATIONS:
+        return <NotificationsSettings onNavigate={setCurrentScreen} />;
+      case AppScreen.SECURITY:
+        return <SecurityPrivacy onNavigate={setCurrentScreen} />;
+      case AppScreen.HELP:
+        return <HelpSupport onNavigate={setCurrentScreen} />;
       default:
         return <Home onNavigate={setCurrentScreen} user={user} onCategorySelect={handleCategorySelect} />;
     }
@@ -170,7 +188,12 @@ const CourierLayout: React.FC<{ user: User; onSwitchUser: () => void; onLogout: 
             label="Wallet" 
           />
           <NavButton 
-            active={currentScreen === AppScreen.PROFILE} 
+            active={currentScreen === AppScreen.PROFILE || 
+                    currentScreen === AppScreen.PERSONAL_INFO || 
+                    currentScreen === AppScreen.DELIVERY_HISTORY ||
+                    currentScreen === AppScreen.NOTIFICATIONS ||
+                    currentScreen === AppScreen.SECURITY ||
+                    currentScreen === AppScreen.HELP} 
             onClick={() => setCurrentScreen(AppScreen.PROFILE)} 
             icon="person" 
             label="Profile" 
@@ -193,26 +216,21 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
   // Adapter function to map AppScreen enum to Routes
   const handleNavigate = (screen: AppScreen) => {
     switch (screen) {
-      case AppScreen.HOME:
-        navigate('/home');
-        break;
-      case AppScreen.ORDER_PLACEMENT:
-        navigate('/order');
-        break;
-      case AppScreen.ORDER_TRACKING:
-        navigate('/track');
-        break;
-      case AppScreen.WALLET:
-        navigate('/wallet');
-        break;
-      case AppScreen.PROFILE:
-        navigate('/profile');
-        break;
-      case AppScreen.KYC_VERIFICATION:
-        navigate('/kyc');
-        break;
-      default:
-        navigate('/home');
+      case AppScreen.HOME: navigate('/home'); break;
+      case AppScreen.ORDER_PLACEMENT: navigate('/order'); break;
+      case AppScreen.ORDER_TRACKING: navigate('/track'); break;
+      case AppScreen.WALLET: navigate('/wallet'); break;
+      case AppScreen.PROFILE: navigate('/profile'); break;
+      case AppScreen.KYC_VERIFICATION: navigate('/kyc'); break;
+      
+      // New screens mapped
+      case AppScreen.PERSONAL_INFO: navigate('/profile/personal'); break;
+      case AppScreen.DELIVERY_HISTORY: navigate('/profile/history'); break;
+      case AppScreen.NOTIFICATIONS: navigate('/profile/notifications'); break;
+      case AppScreen.SECURITY: navigate('/profile/security'); break;
+      case AppScreen.HELP: navigate('/profile/help'); break;
+      
+      default: navigate('/home');
     }
   };
 
@@ -229,6 +247,13 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
           <Route path="/wallet" element={<Wallet onNavigate={handleNavigate} user={user} />} />
           <Route path="/profile" element={<Profile onNavigate={handleNavigate} user={user} onSwitchUser={onSwitchUser} onLogout={onLogout} />} />
           <Route path="/kyc" element={<KYCVerification onNavigate={handleNavigate} />} />
+          
+          {/* New Routes */}
+          <Route path="/profile/personal" element={<PersonalInformation onNavigate={handleNavigate} user={user} />} />
+          <Route path="/profile/history" element={<DeliveryHistory onNavigate={handleNavigate} />} />
+          <Route path="/profile/notifications" element={<NotificationsSettings onNavigate={handleNavigate} />} />
+          <Route path="/profile/security" element={<SecurityPrivacy onNavigate={handleNavigate} />} />
+          <Route path="/profile/help" element={<HelpSupport onNavigate={handleNavigate} />} />
         </Routes>
       </div>
 
@@ -270,7 +295,7 @@ const HospitalAppContent: React.FC<{ user: User; onSwitchUser: () => void; onLog
           )}
 
           <NavButton 
-            active={location.pathname === '/profile'} 
+            active={location.pathname.startsWith('/profile')} 
             onClick={() => navigate('/profile')} 
             icon="person" 
             label="Profile" 
