@@ -1,25 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, VehicleType } from '../types';
-import { initializeApp } from 'firebase/app';
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
-
-// --- FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const analytics = getAnalytics(app);
-auth.useDeviceLanguage();
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { auth } from '../firebase';
 
 // Declare window interface for recaptcha
 declare global {
@@ -32,16 +14,15 @@ interface AuthProps {
   onLogin: (user: User) => void;
 }
 
-type AuthStep = 'LANDING' | 'PHONE_INPUT' | 'OTP_VERIFY' | 'ROLE_SELECT' | 'VEHICLE_SELECT';
+type AuthStep = 'LANDING' | 'LOGIN_CREDENTIALS' | 'PHONE_INPUT' | 'OTP_VERIFY' | 'CREATE_PIN' | 'ROLE_SELECT' | 'VEHICLE_SELECT';
 
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [step, setStep] = useState<AuthStep>('LANDING');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [pin, setPin] = useState(''); // First Factor
+  const [otp, setOtp] = useState(['', '', '', '', '', '']); // Second Factor
   const [isLoginMode, setIsLoginMode] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,29 +30,42 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   // Firebase State
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  // Initialize Recaptcha when entering PHONE_INPUT step
+  // Initialize Recaptcha when entering Input steps
   useEffect(() => {
-    if (step === 'PHONE_INPUT') {
+    if (step === 'PHONE_INPUT' || step === 'LOGIN_CREDENTIALS') {
       // Clear existing verifier if any
       if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        try { 
+          window.recaptchaVerifier.clear(); 
+        } catch(e) {
+          console.log('Error clearing recaptcha:', e);
+        }
         window.recaptchaVerifier = null;
       }
 
-      try {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          'size': 'invisible',
-          'callback': () => {
-            console.log("Recaptcha verified");
-          },
-          'expired-callback': () => {
-             setError('reCAPTCHA expired. Please try again.');
-             setIsLoading(false);
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        try {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': () => {
+              console.log("Recaptcha verified");
+            },
+            'expired-callback': () => {
+               setError('reCAPTCHA expired. Please try again.');
+               setIsLoading(false);
+            }
+          });
+        } catch (err) {
+          console.error("Recaptcha Init Error", err);
+          // Only show error if we are actively on an auth step
+          if (step === 'PHONE_INPUT' || step === 'LOGIN_CREDENTIALS') {
+             setError('Failed to initialize security check. Please refresh.');
           }
-        });
-      } catch (err) {
-        console.error("Recaptcha Init Error", err);
-      }
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
   }, [step]);
 
@@ -79,10 +73,18 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   // --- Handlers ---
 
   const handleSendOtp = async () => {
+    // Basic Validation
     if (phoneNumber.length < 9) {
       setError("Please enter a valid phone number");
       return;
     }
+
+    // If logging in, validate PIN (Factor 1) before sending OTP (Factor 2)
+    if (isLoginMode && pin.length < 4) {
+      setError("Please enter your 4-digit Security PIN.");
+      return;
+    }
+
     setError(null);
     setIsLoading(true);
 
@@ -90,7 +92,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     try {
       if (!window.recaptchaVerifier) {
-          // Attempt to re-init if lost
           window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
       }
       
@@ -113,8 +114,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
          setError(err.message || "Failed to send SMS. Check console.");
       }
 
+      // Reset recaptcha on error
       if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; } catch(e) {}
+        try { 
+          window.recaptchaVerifier.clear(); 
+          window.recaptchaVerifier = null; 
+        } catch(e) {
+          console.log('Error clearing recaptcha:', e);
+        }
       }
     }
   };
@@ -137,7 +144,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       setIsLoading(false);
       
       if (isLoginMode) {
-        // In a real app, you would fetch user profile here.
+        // Login Successful (2FA Complete)
         onLogin({
           name: 'Marcus Thompson', 
           role: 'COURIER', 
@@ -147,7 +154,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           badges: ['KYC', 'FDA_CERTIFIED']
         });
       } else {
-        setStep('ROLE_SELECT');
+        // Signup: OTP Verified, now Create PIN
+        setStep('CREATE_PIN');
       }
 
     } catch (err: any) {
@@ -159,6 +167,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         setError("Verification failed. Please try again.");
       }
     }
+  };
+
+  const handlePinCreation = () => {
+    if (pin.length < 4) {
+      setError("Please set a 4-digit PIN.");
+      return;
+    }
+    // In a real app, save PIN to backend here
+    setStep('ROLE_SELECT');
   };
 
   const handleRoleSelect = (role: UserRole) => {
@@ -229,10 +246,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           <div className="flex flex-col gap-4">
             <button 
-              onClick={() => { setIsLoginMode(true); setStep('PHONE_INPUT'); }}
-              className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all"
+              onClick={() => { setIsLoginMode(true); setStep('LOGIN_CREDENTIALS'); }}
+              className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
-              Log In
+              <span className="material-symbols-outlined text-xl">lock</span>
+              Secure Log In
             </button>
             <button 
               onClick={() => { setIsLoginMode(false); setStep('PHONE_INPUT'); }}
@@ -243,13 +261,83 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           </div>
           
           <p className="text-center text-xs text-slate-400 mt-8 font-medium">
-            By continuing, you agree to our <span className="text-slate-600 underline">Terms</span> & <span className="text-slate-600 underline">Privacy Policy</span>
+            Protected by <span className="text-slate-600 font-bold">2-Factor Authentication</span>
           </p>
         </div>
       </div>
     );
   }
 
+  // LOGIN FLOW: Step 1 (Credentials)
+  if (step === 'LOGIN_CREDENTIALS') {
+    return (
+      <div className="min-h-screen bg-white font-display p-6 flex flex-col">
+        <button onClick={() => setStep('LANDING')} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-6 hover:bg-slate-100">
+          <span className="material-symbols-outlined">arrow_back</span>
+        </button>
+
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h2>
+        <p className="text-slate-500 mb-8">Enter credentials to trigger 2FA.</p>
+
+        {/* Recaptcha Container */}
+        <div id="recaptcha-container"></div>
+
+        <div className="space-y-4 mb-6">
+            <div>
+                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Mobile Number</label>
+                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-1 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
+                    <div className="flex items-center gap-2 border-r border-slate-200 pr-3 py-3">
+                        <img src="https://flagcdn.com/w40/gh.png" alt="Ghana" className="w-6 rounded-sm" />
+                        <span className="font-bold text-slate-700">+233</span>
+                    </div>
+                    <input 
+                        type="tel" 
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-lg font-bold text-slate-900 placeholder:text-slate-300 py-3 pl-3"
+                        placeholder="XX XXX XXXX"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Security PIN</label>
+                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
+                    <span className="material-symbols-outlined text-slate-400 mr-2">lock</span>
+                    <input 
+                        type="password" 
+                        maxLength={6}
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-lg font-bold text-slate-900 placeholder:text-slate-300 p-0"
+                        placeholder="••••"
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value)}
+                    />
+                </div>
+                <div className="flex justify-end mt-2">
+                    <button className="text-xs font-bold text-primary">Forgot PIN?</button>
+                </div>
+            </div>
+        </div>
+        
+        {error && (
+            <div className="mb-6 p-3 bg-red-50 text-red-500 text-sm font-bold rounded-lg flex items-center gap-2 animate-in slide-in-from-top-2">
+                <span className="material-symbols-outlined text-lg">error</span>
+                {error}
+            </div>
+        )}
+
+        <button 
+          onClick={handleSendOtp}
+          disabled={phoneNumber.length < 9 || pin.length < 4 || isLoading}
+          className="w-full bg-primary disabled:bg-slate-200 disabled:text-slate-400 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+        >
+          {isLoading ? <span className="material-symbols-outlined animate-spin">sync</span> : 'Verify & Send SMS'}
+        </button>
+      </div>
+    );
+  }
+
+  // SIGNUP FLOW: Step 1 (Phone Only)
   if (step === 'PHONE_INPUT') {
     return (
       <div className="min-h-screen bg-white font-display p-6 flex flex-col">
@@ -257,10 +345,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
 
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">{isLoginMode ? 'Welcome Back!' : 'Get Started'}</h2>
-        <p className="text-slate-500 mb-8">Enter your mobile number to continue.</p>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Get Started</h2>
+        <p className="text-slate-500 mb-8">Enter your mobile number to create an account.</p>
 
-        {/* Recaptcha Container (Invisible) */}
         <div id="recaptcha-container"></div>
 
         <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-1 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all mb-4">
@@ -291,25 +378,29 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         >
           {isLoading ? <span className="material-symbols-outlined animate-spin">sync</span> : 'Send Verification Code'}
         </button>
-        
-        <p className="text-center mt-4 text-xs text-slate-400">
-            Securely powered by Firebase Authentication.
-        </p>
       </div>
     );
   }
 
+  // SHARED: Step 2 (OTP Verification)
   if (step === 'OTP_VERIFY') {
-    if (otp.length === 4) setOtp(['', '', '', '', '', '']);
-
     return (
       <div className="min-h-screen bg-white font-display p-6 flex flex-col">
-        <button onClick={() => setStep('PHONE_INPUT')} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-8 hover:bg-slate-100">
+        <button onClick={() => setStep(isLoginMode ? 'LOGIN_CREDENTIALS' : 'PHONE_INPUT')} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-8 hover:bg-slate-100">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
 
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Verify Phone</h2>
-        <p className="text-slate-500 mb-8">We sent a 6-digit code to <span className="font-bold text-slate-900">+233 {phoneNumber}</span></p>
+        <div className="mb-2 flex items-center gap-2">
+            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+                {isLoginMode ? '2nd Factor' : 'Verification'}
+            </span>
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            {isLoginMode ? 'Two-Factor Auth' : 'Verify Phone'}
+        </h2>
+        <p className="text-slate-500 mb-8">
+            Enter the 6-digit code sent to <span className="font-bold text-slate-900">+233 {phoneNumber}</span>
+        </p>
 
         <div className="flex justify-between gap-2 mb-6">
           {otp.map((digit, idx) => (
@@ -340,9 +431,52 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           {isLoading ? <span className="material-symbols-outlined animate-spin">sync</span> : 'Verify & Continue'}
         </button>
         
-        <p className="text-center mt-6 text-sm font-bold text-slate-400">Didn't receive code? <span className="text-primary cursor-pointer" onClick={() => { setStep('PHONE_INPUT'); handleSendOtp(); }}>Resend</span></p>
+        <p className="text-center mt-6 text-sm font-bold text-slate-400">Didn't receive code? <span className="text-primary cursor-pointer" onClick={() => { setStep('PHONE_INPUT'); }}>Resend</span></p>
       </div>
     );
+  }
+
+  // SIGNUP FLOW: Step 3 (Create PIN)
+  if (step === 'CREATE_PIN') {
+      return (
+        <div className="min-h-screen bg-white font-display p-6 flex flex-col">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Create Security PIN</h2>
+            <p className="text-slate-500 mb-8">Set a 4-digit PIN for 2-Factor Authentication on future logins.</p>
+
+            <div className="flex justify-center mb-8">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-primary border-4 border-blue-100">
+                    <span className="material-symbols-outlined text-4xl">lock_open</span>
+                </div>
+            </div>
+
+            <div className="mb-6">
+                <label className="block text-xs font-bold uppercase text-slate-400 mb-2">New PIN</label>
+                <input 
+                    type="tel" 
+                    maxLength={4}
+                    className="w-full h-16 rounded-xl border-2 border-slate-200 text-center text-3xl font-black text-slate-900 focus:border-primary focus:ring-0 focus:outline-none tracking-[1em]"
+                    value={pin}
+                    placeholder="••••"
+                    onChange={(e) => setPin(e.target.value)}
+                />
+            </div>
+
+            {error && (
+                <div className="mb-6 p-3 bg-red-50 text-red-500 text-sm font-bold rounded-lg flex items-center gap-2">
+                    <span className="material-symbols-outlined text-lg">error</span>
+                    {error}
+                </div>
+            )}
+
+            <button 
+                onClick={handlePinCreation}
+                disabled={pin.length < 4}
+                className="w-full bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
+            >
+                Set PIN & Continue
+            </button>
+        </div>
+      );
   }
 
   if (step === 'ROLE_SELECT') {
