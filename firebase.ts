@@ -1,31 +1,43 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/analytics';
+
+// Safely access env vars from window.process.env populated by config.js
+const env = (window as any).process?.env || {};
 
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID
+  apiKey: env.FIREBASE_API_KEY,
+  authDomain: env.FIREBASE_AUTH_DOMAIN,
+  projectId: env.FIREBASE_PROJECT_ID,
+  storageBucket: env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.FIREBASE_APP_ID,
+  measurementId: env.FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-// Ensure we only initialize once
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-auth.useDeviceLanguage();
+// Initialize Firebase (Compat)
+const app = firebase.apps.length > 0 ? firebase.app() : firebase.initializeApp(firebaseConfig);
 
-// Initialize analytics only in browser environment
-let analytics;
+// Initialize Auth
+const auth = firebase.auth();
+// Attempt to set language
+try {
+    auth.useDeviceLanguage();
+} catch (error) {
+    console.warn("Auth language setting failed", error);
+}
+
+// Initialize Analytics (Conditional)
+let analytics: any = null;
 if (typeof window !== 'undefined') {
-  try {
-    analytics = getAnalytics(app);
-  } catch (e) {
-    console.warn('Firebase Analytics initialization skipped:', e);
-  }
+  firebase.analytics.isSupported().then((supported) => {
+    if (supported) {
+      analytics = firebase.analytics();
+    }
+  }).catch((err) => {
+      console.warn("Analytics not supported:", err);
+  });
 }
 
 export { app, auth, analytics };
+export default app;

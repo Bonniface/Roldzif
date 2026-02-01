@@ -46,6 +46,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       // Small delay to ensure DOM is ready
       const timer = setTimeout(() => {
         try {
+          if (!auth) {
+              console.error("Auth instance not ready");
+              return;
+          }
           window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
             'size': 'invisible',
             'callback': () => {
@@ -63,7 +67,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
              setError('Failed to initialize security check. Please refresh.');
           }
         }
-      }, 100);
+      }, 500);
 
       return () => clearTimeout(timer);
     }
