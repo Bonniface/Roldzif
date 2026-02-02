@@ -2,41 +2,35 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/analytics';
 
-// Safely access env vars from window.process.env populated by config.js
-const env = (window as any).process?.env || {};
-
+// Hardcoded configuration for local testing as requested
 const firebaseConfig = {
-  apiKey: env.FIREBASE_API_KEY,
-  authDomain: env.FIREBASE_AUTH_DOMAIN,
-  projectId: env.FIREBASE_PROJECT_ID,
-  storageBucket: env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: env.FIREBASE_APP_ID,
-  measurementId: env.FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyBHN7GKSz1HcHmFIuCmqPpu8R3z6vxsPoM",
+  authDomain: "roldzif.firebaseapp.com",
+  projectId: "roldzif",
+  storageBucket: "roldzif.firebasestorage.app",
+  messagingSenderId: "58667416955",
+  appId: "1:58667416955:web:fe72f5db30259d60e991de",
+  measurementId: "G-6X9ZTJ81GD"
 };
 
 // Initialize Firebase (Compat)
+// Check if app is already initialized to avoid duplicate initialization errors
 const app = firebase.apps.length > 0 ? firebase.app() : firebase.initializeApp(firebaseConfig);
 
 // Initialize Auth
 const auth = firebase.auth();
-// Attempt to set language
-try {
-    auth.useDeviceLanguage();
-} catch (error) {
-    console.warn("Auth language setting failed", error);
-}
+auth.useDeviceLanguage();
 
 // Initialize Analytics (Conditional)
 let analytics: any = null;
 if (typeof window !== 'undefined') {
-  firebase.analytics.isSupported().then((supported) => {
-    if (supported) {
-      analytics = firebase.analytics();
-    }
-  }).catch((err) => {
-      console.warn("Analytics not supported:", err);
-  });
+  if (firebase.analytics && typeof firebase.analytics === 'function') {
+      try {
+        analytics = firebase.analytics();
+      } catch (e) {
+        console.warn("Analytics init failed", e);
+      }
+  }
 }
 
 export { app, auth, analytics };

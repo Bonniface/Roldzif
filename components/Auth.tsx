@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, VehicleType } from '../types';
-import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import firebase from 'firebase/compat/app';
 import { auth } from '../firebase';
 
 // Declare window interface for recaptcha
@@ -27,8 +27,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Firebase State
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  // Firebase State (ConfirmationResult type is any in compat for safety here)
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
   // Initialize Recaptcha when entering Input steps
   useEffect(() => {
@@ -50,7 +50,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               console.error("Auth instance not ready");
               return;
           }
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          // Compat: Use firebase.auth.RecaptchaVerifier
+          window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
             'size': 'invisible',
             'callback': () => {
               console.log("Recaptcha verified");
@@ -96,11 +97,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     try {
       if (!window.recaptchaVerifier) {
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+          window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
       }
       
       const appVerifier = window.recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, formattedNumber, appVerifier);
+      // Compat: auth.signInWithPhoneNumber
+      const result = await auth.signInWithPhoneNumber(formattedNumber, appVerifier);
       setConfirmationResult(result);
       setIsLoading(false);
       setStep('OTP_VERIFY');
